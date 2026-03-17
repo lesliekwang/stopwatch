@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stopwatch</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #1a1a2e;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 24px 96px;
+      gap: 56px;
+    }
+
+    /* ── Stopwatch ── */
+    .stopwatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .display {
+      font-size: 96px;
+      font-weight: 200;
+      color: #e0e0e0;
+      letter-spacing: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .display .milliseconds {
+      font-size: 56px;
+      color: #a0a0b0;
+    }
+
+    /* control buttons */
+    .controls {
+      display: flex;
+      gap: 24px;
+    }
+
+    .btn-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: none;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .btn-circle:active:not(:disabled) { transform: scale(0.95); }
+
+    #startBtn { background: #00c853; color: #fff; box-shadow: 0 8px 24px rgba(0,200,83,.4); }
+    #startBtn:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(0,200,83,.65); }
+
+    #stopBtn  { background: #ff1744; color: #fff; box-shadow: 0 8px 24px rgba(255,23,68,.4); }
+    #stopBtn:hover:not(:disabled)  { box-shadow: 0 8px 32px rgba(255,23,68,.65); }
+
+    #resetBtn { background: #424266; color: #c0c0d0; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+    #resetBtn:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+
+    .btn-circle:disabled {
+      opacity: 0.32;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* log session button */
+    #logSessionBtn {
+      background: transparent;
+      border: 2px solid #303060;
+      border-radius: 12px;
+      color: #7070b8;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      padding: 10px 32px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    #logSessionBtn:hover {
+      color: #b0b0e8;
+      border-color: #6060b0;
+      background: rgba(96, 96, 176, 0.08);
+    }
+
+    #logSessionBtn:active {
+      transform: scale(0.97);
+    }
+
+    /* ── Session Log ── */
+    .log-section {
+      width: 100%;
+      max-width: 660px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #222244;
+    }
+
+    .log-header h2 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #404080;
+    }
+
+    .log-count {
+      font-size: 12px;
+      color: #383868;
+    }
+
+    /* individual log card */
+    .log-entry {
+      background: #20203e;
+      border: 1px solid #28284e;
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: slideUp 0.28s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .entry-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .entry-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #c8c8f0;
+      outline: none;
+      border-bottom: 1.5px solid transparent;
+      padding-bottom: 2px;
+      cursor: text;
+      min-width: 40px;
+      max-width: 320px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .entry-name:hover:not(:focus) {
+      border-bottom-color: #363660;
+    }
+
+    .entry-name:focus {
+      border-bottom-color: #6060c0;
+      color: #fff;
+    }
+
+    .entry-duration {
+      font-size: 24px;
+      font-weight: 300;
+      color: #8888c0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+
+    .entry-times {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .time-block {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .time-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #383870;
+    }
+
+    .time-value {
+      font-size: 13px;
+      color: #6868a8;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Stopwatch -->
+  <div class="stopwatch">
+    <div class="display">
+      <span id="time">00:00</span><span class="milliseconds">.<span id="ms">00</span></span>
+    </div>
+
+    <div class="controls">
+      <button class="btn-circle" id="startBtn">START</button>
+      <button class="btn-circle" id="stopBtn" disabled>STOP</button>
+      <button class="btn-circle" id="resetBtn">RESET</button>
+    </div>
+
+    <button id="logSessionBtn" style="display:none">＋  LOG SESSION</button>
+  </div>
+
+  <!-- Session Log (hidden until first entry) -->
+  <div class="log-section" id="logSection" style="display:none">
+    <div class="log-header">
+      <h2>Session Log</h2>
+      <span class="log-count" id="logCount"></span>
+    </div>
+    <div id="logEntries"></div>
+  </div>
+
+  <script>
+    // ── Stopwatch state ───────────────────────────────────────────────────────
+    let perfStart = 0;
+    let elapsed   = 0;
+    let ticker    = null;
+
+    // ── Session state ─────────────────────────────────────────────────────────
+    let sessionIndex = 0;
+    let startWall    = null;
+    let loggedCount  = 0;
+
+    // ── DOM ───────────────────────────────────────────────────────────────────
+    const timeEl       = document.getElementById('time');
+    const msEl         = document.getElementById('ms');
+    const startBtn      = document.getElementById('startBtn');
+    const stopBtn       = document.getElementById('stopBtn');
+    const resetBtn      = document.getElementById('resetBtn');
+    const logSessionBtn = document.getElementById('logSessionBtn');
+    const logSection    = document.getElementById('logSection');
+    const logEntriesEl  = document.getElementById('logEntries');
+    const logCountEl    = document.getElementById('logCount');
+
+    // ── Utilities ─────────────────────────────────────────────────────────────
+    function fmtElapsed(ms) {
+      const secs = Math.floor(ms / 1000);
+      const min  = Math.floor(secs / 60);
+      const sec  = secs % 60;
+      const cs   = Math.floor((ms % 1000) / 10);
+      return {
+        main : `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`,
+        cs   : String(cs).padStart(2,'0')
+      };
+    }
+
+    function fmtWall(date) {
+      return date.toLocaleTimeString([], {
+        hour   : '2-digit',
+        minute : '2-digit',
+        second : '2-digit'
+      });
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;')
+              .replace(/</g,'&lt;')
+              .replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;');
+    }
+
+    function showLogBtn(show) {
+      logSessionBtn.style.display = show ? 'block' : 'none';
+    }
+
+    function tick() {
+      const total = elapsed + (performance.now() - perfStart);
+      const { main, cs } = fmtElapsed(total);
+      timeEl.textContent = main;
+      msEl.textContent   = cs;
+    }
+
+    function refreshLogCount() {
+      logCountEl.textContent = `${loggedCount} session${loggedCount !== 1 ? 's' : ''}`;
+    }
+
+    // ── Stopwatch controls ────────────────────────────────────────────────────
+    startBtn.addEventListener('click', () => {
+      startWall = new Date();
+      perfStart = performance.now();
+      ticker    = setInterval(tick, 10);
+
+      startBtn.disabled = true;
+      stopBtn.disabled  = false;
+      showLogBtn(false);
+    });
+
+    stopBtn.addEventListener('click', () => {
+      elapsed += performance.now() - perfStart;
+      clearInterval(ticker);
+      ticker = null;
+
+      startBtn.disabled = false;
+      stopBtn.disabled  = true;
+      showLogBtn(true);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(ticker);
+      ticker    = null;
+      elapsed   = 0;
+      perfStart = 0;
+      startWall = null;
+
+      timeEl.textContent = '00:00';
+      msEl.textContent   = '00';
+
+      startBtn.disabled = false;
+      stopBtn.disabled  = true;
+      showLogBtn(false);
+    });
+
+    // ── Log session button ────────────────────────────────────────────────────
+    logSessionBtn.addEventListener('click', () => {
+      sessionIndex++;
+      appendLogEntry(
+        `Session ${sessionIndex}`,
+        startWall,
+        new Date(),
+        elapsed
+      );
+      showLogBtn(false);
+    });
+
+    // ── Append completed session to log ───────────────────────────────────────
+    function appendLogEntry(name, startWall, stopWall, durationMs) {
+      loggedCount++;
+      logSection.style.display = 'flex';
+      refreshLogCount();
+
+      const { main, cs } = fmtElapsed(durationMs);
+
+      const card = document.createElement('div');
+      card.className = 'log-entry';
+      card.innerHTML = `
+        <div class="entry-top">
+          <span class="entry-name" contenteditable="true" spellcheck="false">${escHtml(name)}</span>
+          <span class="entry-duration">${main}<span style="font-size:16px;color:#48487a">.${cs}</span></span>
+        </div>
+        <div class="entry-times">
+          <div class="time-block">
+            <span class="time-label">Start</span>
+            <span class="time-value">${startWall ? fmtWall(startWall) : '—'}</span>
+          </div>
+          <div class="time-block">
+            <span class="time-label">Stop</span>
+            <span class="time-value">${fmtWall(stopWall)}</span>
+          </div>
+        </div>
+      `;
+
+      // Prevent Enter from inserting a newline; blur to confirm edit
+      card.querySelector('.entry-name').addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+      });
+
+      // Newest session at the top
+      logEntriesEl.prepend(card);
+    }
+  </script>
+</body>
+</html>
