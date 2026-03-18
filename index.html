@@ -185,6 +185,55 @@
       transform: scale(0.97);
     }
 
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(32, 32, 62, 0.95);
+      border: 1px solid #404070;
+      border-radius: 16px;
+      padding: 28px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .toast-check {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #00c853;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toast-check svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
+
+    .toast-text {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #c8c8f0;
+    }
+
     /* lap button — removed, now combined into leftBtn */
 
     /* ── Lap List ── */
@@ -907,6 +956,14 @@
     <button id="logSessionBtn" style="display:none">＋  LOG SESSION</button>
   </div>
 
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-check">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    </div>
+    <span class="toast-text">Session Logged</span>
+  </div>
+
   </div><!-- /pageStopwatch -->
 
   <!-- ═══════════ PAGE: Logs ═══════════ -->
@@ -1030,6 +1087,7 @@
     const exportDateInput = document.getElementById('exportDateInput');
     const tagContainer  = document.getElementById('tagContainer');
     const tagBtns       = document.querySelectorAll('.tag-btn');
+    const toast         = document.getElementById('toast');
 
     const INSPECTION_TAGS = ['Suggested Damages', 'Partial Automation'];
 
@@ -1355,6 +1413,10 @@
         tags,
         savedLaps
       );
+
+      // Show toast
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1400);
     });
 
     // ── Export CSV ──────────────────────────────────────────────────────────
