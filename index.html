@@ -185,53 +185,36 @@
       transform: scale(0.97);
     }
 
+    #logSessionBtn.logged {
+      color: #00c853;
+      border-color: #00c853;
+    }
+
     /* Toast notification */
-    .toast {
+    #toast {
       position: fixed;
-      top: 50%;
+      bottom: 100px;
       left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: rgba(32, 32, 62, 0.95);
-      border: 1px solid #404070;
-      border-radius: 16px;
-      padding: 28px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s, transform 0.25s;
-      z-index: 200;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .toast-check {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
+      transform: translateX(-50%);
       background: #00c853;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .toast-check svg {
-      width: 28px;
-      height: 28px;
-      fill: #fff;
-    }
-
-    .toast-text {
+      color: #fff;
       font-size: 14px;
       font-weight: 700;
-      text-transform: uppercase;
       letter-spacing: 1.5px;
-      color: #c8c8f0;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      border-radius: 30px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 9999;
+      box-shadow: 0 4px 20px rgba(0,200,83,.4);
+    }
+
+    #toast svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
     }
 
     /* lap button — removed, now combined into leftBtn */
@@ -953,18 +936,16 @@
       </div>
     </div>
 
-    <button id="logSessionBtn" style="display:none">＋  LOG SESSION</button>
-  </div>
-
-  <!-- Toast -->
-  <div class="toast" id="toast">
-    <div class="toast-check">
-      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-    </div>
-    <span class="toast-text">Session Logged</span>
+    <button id="logSessionBtn">＋  LOG SESSION</button>
   </div>
 
   </div><!-- /pageStopwatch -->
+
+  <!-- Toast (outside page views for fixed positioning) -->
+  <div id="toast">
+    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    Session Logged
+  </div>
 
   <!-- ═══════════ PAGE: Logs ═══════════ -->
   <div class="page" id="pageLogs">
@@ -1227,8 +1208,7 @@
     }
 
     function showLogBtn(show) {
-      logSessionBtn.style.display = show ? 'block' : 'none';
-      // tagContainer.style.display = show ? 'none' : 'flex'; // Removed this line to keep tags visible
+      // no-op: log button always visible now
     }
 
     function resetTags() {
@@ -1398,7 +1378,6 @@
       msEl.textContent   = '00';
       running = false;
       stopped = false;
-      logSessionBtn.style.display = 'none';
       resetTags();
       clearLaps();
       updateButtons();
@@ -1415,8 +1394,16 @@
       );
 
       // Show toast
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 1400);
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 1400);
+
+      // Briefly change button text to confirm
+      logSessionBtn.textContent = 'Session logged!';
+      logSessionBtn.classList.add('logged');
+      setTimeout(() => {
+        logSessionBtn.textContent = '＋  LOG SESSION';
+        logSessionBtn.classList.remove('logged');
+      }, 1400);
     });
 
     // ── Export CSV ──────────────────────────────────────────────────────────
