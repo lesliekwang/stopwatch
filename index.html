@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Stopwatch</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
-    
+
 
     body {
       min-height: 100vh;
@@ -20,6 +21,7 @@
       flex-direction: column;
       align-items: center;
       padding: 64px 24px 96px;
+      padding-bottom: max(96px, env(safe-area-inset-bottom));
       gap: 56px;
     }
 
@@ -47,7 +49,7 @@
     /* control buttons */
     .controls {
       display: flex;
-      gap: 24px;
+      gap: 32px;
     }
 
     .btn-circle {
@@ -60,25 +62,44 @@
       letter-spacing: 1px;
       cursor: pointer;
       font-family: 'Segoe UI', sans-serif;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
     }
 
-    .btn-circle:active:not(:disabled) { transform: scale(0.95); }
+    .btn-circle:active { transform: scale(0.95); }
 
-    #startBtn { background: #00c853; color: #fff; box-shadow: 0 8px 24px rgba(0,200,83,.4); }
-    #startBtn:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(0,200,83,.65); }
-
-    #stopBtn  { background: #ff1744; color: #fff; box-shadow: 0 8px 24px rgba(255,23,68,.4); }
-    #stopBtn:hover:not(:disabled)  { box-shadow: 0 8px 32px rgba(255,23,68,.65); }
-
-    #resetBtn { background: #424266; color: #c0c0d0; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
-    #resetBtn:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(0,0,0,.5); }
-
-    .btn-circle:disabled {
-      opacity: 0.32;
-      cursor: not-allowed;
-      box-shadow: none;
+    /* left button: lap / reset */
+    #leftBtn {
+      background: #424266;
+      color: #c0c0d0;
+      box-shadow: 0 8px 24px rgba(0,0,0,.3);
     }
+
+    #leftBtn:hover { box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+
+    #leftBtn.is-lap {
+      background: #1565c0;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(21,101,192,.4);
+    }
+
+    #leftBtn.is-lap:hover { box-shadow: 0 8px 32px rgba(21,101,192,.65); }
+
+    /* right button: start / stop */
+    #rightBtn {
+      background: #00c853;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0,200,83,.4);
+    }
+
+    #rightBtn:hover { box-shadow: 0 8px 32px rgba(0,200,83,.65); }
+
+    #rightBtn.is-stop {
+      background: #ff1744;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(255,23,68,.4);
+    }
+
+    #rightBtn.is-stop:hover { box-shadow: 0 8px 32px rgba(255,23,68,.65); }
 
     /* log session button */
     #logSessionBtn {
@@ -105,6 +126,147 @@
       transform: scale(0.97);
     }
 
+    /* lap button — removed, now combined into leftBtn */
+
+    /* ── Lap List ── */
+    .lap-section {
+      width: 100%;
+      max-width: 500px;
+      display: none;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .lap-header {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #404080;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #222244;
+      margin-bottom: 6px;
+      display: grid;
+      grid-template-columns: 50px 1fr 90px 90px;
+      gap: 8px;
+    }
+
+    .lap-header span:nth-child(3),
+    .lap-header span:nth-child(4) {
+      text-align: right;
+    }
+
+    .lap-row {
+      display: grid;
+      grid-template-columns: 50px 1fr 90px 90px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #1e1e3a;
+      animation: slideUp 0.18s ease;
+    }
+
+    .lap-num {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5050a0;
+    }
+
+    .lap-tag-select {
+      font-size: 11px;
+      font-weight: 600;
+      color: #7070b8;
+      background: #1a1a34;
+      border: 1px solid #303060;
+      border-radius: 6px;
+      padding: 4px 6px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235050a0'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      padding-right: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .lap-tag-select:focus {
+      border-color: #6060c0;
+    }
+
+    .lap-tag-select option {
+      background: #1a1a34;
+      color: #b0b0d8;
+    }
+
+    .lap-split {
+      font-size: 13px;
+      color: #7070a8;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .lap-time {
+      font-size: 13px;
+      color: #9090c8;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* ── Tagging ── */
+    .tag-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .tag-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #404080;
+    }
+
+    .tag-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tag-btn {
+      background: #1e1e3a;
+      border: 1px solid #303060;
+      border-radius: 8px;
+      color: #7070b8;
+      font-size: 12px;
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tag-btn:hover {
+      border-color: #5050a0;
+      color: #9090c8;
+    }
+
+    .tag-btn.active {
+      background: #404080;
+      border-color: #6060c0;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(96, 96, 192, 0.3);
+    }
+
     /* ── Session Log ── */
     .log-section {
       width: 100%;
@@ -122,12 +284,38 @@
       border-bottom: 1px solid #222244;
     }
 
+    .log-header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
     .log-header h2 {
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
       color: #404080;
+    }
+
+    #exportCsvBtn, #clearLogsBtn {
+      background: none;
+      border: none;
+      color: #383868;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    #exportCsvBtn:hover {
+      color: #6c63ff;
+    }
+
+    #clearLogsBtn:hover {
+      color: #ff1744;
     }
 
     .log-count {
@@ -193,6 +381,264 @@
       white-space: nowrap;
     }
 
+    .entry-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .log-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #7070b8;
+      background: rgba(112, 112, 184, 0.12);
+      border: 1px solid rgba(112, 112, 184, 0.2);
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+
+    .entry-tag-select {
+      font-size: 11px;
+      font-weight: 600;
+      color: #7070b8;
+      background: #1a1a34;
+      border: 1px solid #303060;
+      border-radius: 6px;
+      padding: 4px 22px 4px 8px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235050a0'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      transition: border-color 0.2s;
+    }
+
+    .entry-tag-select:focus {
+      border-color: #6060c0;
+    }
+
+    .entry-tag-select option {
+      background: #1a1a34;
+      color: #b0b0d8;
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-btn {
+      background: rgba(255, 23, 68, 0.1);
+      border: none;
+      color: #ff1744;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── Selection / Export mode ─────────────────────────────────── */
+    .log-entry .entry-checkbox {
+      display: none;
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      accent-color: #6c63ff;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+
+    .log-section.select-mode .entry-checkbox {
+      display: block;
+    }
+
+    .log-entry.selected {
+      border-color: #6c63ff;
+      box-shadow: 0 0 0 1px rgba(108, 99, 255, 0.3);
+    }
+
+    .export-toolbar {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #1a1a34;
+      border: 1px solid #303060;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .log-section.select-mode .export-toolbar {
+      display: flex;
+    }
+
+    .log-section.select-mode .log-header-left button {
+      display: none;
+    }
+
+    .export-toolbar-btn {
+      background: none;
+      border: 1px solid #303060;
+      color: #8888c0;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .export-toolbar-btn:hover {
+      border-color: #5050a0;
+      color: #c8c8f0;
+    }
+
+    .export-toolbar-btn.export-go {
+      background: #6c63ff;
+      border-color: #6c63ff;
+      color: #fff;
+    }
+
+    .export-toolbar-btn.export-go:hover {
+      background: #7b73ff;
+      border-color: #7b73ff;
+    }
+
+    .export-toolbar-btn.export-go:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .export-toolbar-count {
+      font-size: 12px;
+      color: #5050a0;
+      margin-left: auto;
+    }
+
+    .export-date-picker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .export-date-picker label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #5050a0;
+    }
+
+    .export-date-input {
+      background: #16162e;
+      border: 1px solid #303060;
+      border-radius: 6px;
+      color: #b0b0d8;
+      font-size: 12px;
+      padding: 5px 8px;
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+      color-scheme: dark;
+    }
+
+    .export-date-input:focus {
+      border-color: #6060c0;
+    }
+
+    /* expandable laps in log */
+    .entry-expand-btn {
+      background: none;
+      border: none;
+      color: #505090;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .entry-expand-btn:hover {
+      color: #9090c8;
+    }
+
+    .entry-expand-btn .arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 10px;
+    }
+
+    .entry-expand-btn.open .arrow {
+      transform: rotate(90deg);
+    }
+
+    .entry-laps {
+      display: none;
+      padding: 8px 0 0;
+    }
+
+    .entry-laps.open {
+      display: block;
+    }
+
+    .entry-laps-table {
+      display: grid;
+      grid-template-columns: 36px 1fr 90px 90px;
+      gap: 4px 8px;
+      font-size: 12px;
+    }
+
+    .entry-laps-table .elh {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #3a3a6a;
+      padding-bottom: 4px;
+    }
+
+    .entry-laps-table .elh:nth-child(3),
+    .entry-laps-table .elh:nth-child(4) {
+      text-align: right;
+    }
+
+    .entry-laps-table .el-num {
+      color: #4a4a80;
+      font-weight: 600;
+    }
+
+    .entry-laps-table .el-tag {
+      color: #6868a0;
+    }
+
+    .entry-laps-table .el-split {
+      color: #6060a0;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .entry-laps-table .el-total {
+      color: #8080b8;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      text-align: right;
+    }
+
     .entry-times {
       display: flex;
       gap: 32px;
@@ -218,6 +664,96 @@
       color: #6868a8;
       font-variant-numeric: tabular-nums;
     }
+
+    /* ── Mobile Responsive (iPhone 15: 393px) ── */
+    @media (max-width: 480px) {
+      body {
+        padding: 40px 16px 64px;
+        gap: 36px;
+      }
+
+      .stopwatch {
+        gap: 24px;
+      }
+
+      .display {
+        font-size: 56px;
+        letter-spacing: 4px;
+      }
+
+      .display .milliseconds {
+        font-size: 32px;
+      }
+
+      .controls {
+        gap: 24px;
+      }
+
+      .btn-circle {
+        width: 88px;
+        height: 88px;
+        font-size: 14px;
+      }
+
+      #logSessionBtn {
+        font-size: 13px;
+        padding: 10px 24px;
+      }
+
+      .tag-options {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .tag-btn {
+        font-size: 11px;
+        padding: 6px 12px;
+      }
+
+      .log-section {
+        max-width: 100%;
+      }
+
+      .log-entry {
+        padding: 16px;
+        gap: 10px;
+      }
+
+      .entry-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .entry-name {
+        font-size: 15px;
+        max-width: 100%;
+      }
+
+      .entry-duration {
+        font-size: 20px;
+      }
+
+      .entry-times {
+        gap: 20px;
+      }
+
+      .lap-section {
+        max-width: 100%;
+      }
+
+      .lap-header,
+      .lap-row {
+        grid-template-columns: 32px 1fr 70px 70px;
+        gap: 6px;
+      }
+
+      .lap-tag-select {
+        font-size: 10px;
+        padding: 3px 18px 3px 4px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -229,9 +765,29 @@
     </div>
 
     <div class="controls">
-      <button class="btn-circle" id="startBtn">START</button>
-      <button class="btn-circle" id="stopBtn" disabled>STOP</button>
-      <button class="btn-circle" id="resetBtn">RESET</button>
+      <button class="btn-circle" id="leftBtn">RESET</button>
+      <button class="btn-circle" id="rightBtn">START</button>
+    </div>
+
+    <!-- Lap list (visible while running / stopped with laps) -->
+    <div class="lap-section" id="lapSection">
+      <div class="lap-header">
+        <span>#</span>
+        <span>Tag</span>
+        <span>Lap Time</span>
+        <span>Total</span>
+      </div>
+      <div id="lapList"></div>
+    </div>
+
+    <div class="tag-container" id="tagContainer">
+      <div class="tag-group">
+        <span class="tag-label">Inspection Type</span>
+        <div class="tag-options" id="inspectionTypeTags">
+          <button class="tag-btn" data-tag="Suggested Damages">Suggested Damages</button>
+          <button class="tag-btn" data-tag="Partial Automation">Partial Automation</button>
+        </div>
+      </div>
     </div>
 
     <button id="logSessionBtn" style="display:none">＋  LOG SESSION</button>
@@ -240,10 +796,25 @@
   <!-- Session Log (hidden until first entry) -->
   <div class="log-section" id="logSection" style="display:none">
     <div class="log-header">
-      <h2>Session Log</h2>
+      <div class="log-header-left">
+        <h2>Session Log</h2>
+        <button id="exportCsvBtn">Export CSV</button>
+        <button id="clearLogsBtn">Clear All</button>
+      </div>
       <span class="log-count" id="logCount"></span>
     </div>
-    <div id="logEntries"></div>
+    <div id="logEntries">
+      <div class="export-toolbar" id="exportToolbar">
+        <button class="export-toolbar-btn" id="selectAllBtn">Select All</button>
+        <div class="export-date-picker">
+          <label for="exportDateInput">Date:</label>
+          <input type="date" class="export-date-input" id="exportDateInput">
+        </div>
+        <button class="export-toolbar-btn export-go" id="exportGoBtn" disabled>Export Selected</button>
+        <button class="export-toolbar-btn" id="exportCancelBtn">Cancel</button>
+        <span class="export-toolbar-count" id="exportSelCount">0 selected</span>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -257,16 +828,143 @@
     let startWall    = null;
     let loggedCount  = 0;
 
+    // ── Lap state ─────────────────────────────────────────────────────────────
+    let laps        = [];   // { lapMs, totalMs, name, tag }
+    let lastLapMs   = 0;    // elapsed at previous lap
+    const LAP_TAGS  = ['', 'EXT (panel)', 'EXT (other)', 'INT', 'DATA ENTRY + EST'];
+
+    // ── UI state ──────────────────────────────────────────────────────────────
+    let running = false;   // is the timer actively ticking?
+    let stopped = false;   // has the timer been stopped (elapsed > 0)?
+
     // ── DOM ───────────────────────────────────────────────────────────────────
     const timeEl       = document.getElementById('time');
     const msEl         = document.getElementById('ms');
-    const startBtn      = document.getElementById('startBtn');
-    const stopBtn       = document.getElementById('stopBtn');
-    const resetBtn      = document.getElementById('resetBtn');
+    const leftBtn       = document.getElementById('leftBtn');
+    const rightBtn      = document.getElementById('rightBtn');
     const logSessionBtn = document.getElementById('logSessionBtn');
+    const lapSection    = document.getElementById('lapSection');
+    const lapList       = document.getElementById('lapList');
     const logSection    = document.getElementById('logSection');
     const logEntriesEl  = document.getElementById('logEntries');
     const logCountEl    = document.getElementById('logCount');
+    const clearLogsBtn  = document.getElementById('clearLogsBtn');
+    const exportCsvBtn  = document.getElementById('exportCsvBtn');
+    const selectAllBtn   = document.getElementById('selectAllBtn');
+    const exportGoBtn    = document.getElementById('exportGoBtn');
+    const exportCancelBtn = document.getElementById('exportCancelBtn');
+    const exportSelCount = document.getElementById('exportSelCount');
+    const exportToolbar  = document.getElementById('exportToolbar');
+    const exportDateInput = document.getElementById('exportDateInput');
+    const tagContainer  = document.getElementById('tagContainer');
+    const tagBtns       = document.querySelectorAll('.tag-btn');
+
+    const INSPECTION_TAGS = ['Suggested Damages', 'Partial Automation'];
+
+    // ── Timer-state persistence (survives refresh) ─────────────────────────
+    function saveTimerState() {
+      const state = {
+        running,
+        stopped,
+        elapsed: running ? elapsed + (performance.now() - perfStart) : elapsed,
+        wallRef: Date.now(),
+        startWall: startWall ? startWall.toISOString() : null,
+        laps,
+        lastLapMs,
+        sessionIndex,
+        selectedTags: getSelectedTags()
+      };
+      localStorage.setItem('stopwatch_timer', JSON.stringify(state));
+    }
+
+    function clearTimerState() {
+      localStorage.removeItem('stopwatch_timer');
+    }
+
+    function restoreTimerState() {
+      const raw = localStorage.getItem('stopwatch_timer');
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (!s || (!s.running && !s.stopped)) { clearTimerState(); return; }
+
+      sessionIndex = s.sessionIndex || 0;
+      startWall    = s.startWall ? new Date(s.startWall) : null;
+      lastLapMs    = s.lastLapMs || 0;
+
+      // Restore selected tags
+      resetTags();
+      (s.selectedTags || []).forEach(tag => {
+        tagBtns.forEach(btn => {
+          if (btn.getAttribute('data-tag') === tag) btn.classList.add('active');
+        });
+      });
+
+      // Restore laps
+      laps = s.laps || [];
+      if (laps.length) {
+        lapSection.style.display = 'flex';
+        laps.forEach((l, i) => {
+          renderLapRow(i + 1, l.lapMs, l.totalMs);
+          // Restore tag selection on lap row
+          const rows = lapList.querySelectorAll('.lap-row');
+          const row = rows[0]; // prepend means newest is first
+          if (l.tag) row.querySelector('.lap-tag-select').value = l.tag;
+        });
+      }
+
+      if (s.running) {
+        // Timer was running — account for time while page was closed
+        const extra = Date.now() - s.wallRef;
+        elapsed   = s.elapsed + extra;
+        perfStart = performance.now();
+        ticker    = setInterval(tick, 10);
+        running   = true;
+        stopped   = false;
+        tick(); // immediately show current time
+      } else if (s.stopped) {
+        elapsed = s.elapsed;
+        running = false;
+        stopped = true;
+        const { main, cs } = fmtElapsed(elapsed);
+        timeEl.textContent = main;
+        msEl.textContent   = cs;
+        showLogBtn(true);
+      }
+      updateButtons();
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (running || stopped) saveTimerState();
+    });
+
+    // ── Log Persistence ───────────────────────────────────────────────────────
+    function saveLogs() {
+      const logs = [];
+      document.querySelectorAll('.log-entry').forEach(entry => {
+        const tagElements = entry.querySelectorAll('.log-tag');
+        const tags = Array.from(tagElements).map(t => t.textContent);
+        const lapsData = JSON.parse(entry.dataset.laps || '[]');
+        logs.push({
+          name: entry.querySelector('.entry-name').textContent,
+          duration: entry.querySelector('.entry-duration').innerHTML,
+          start: entry.querySelector('.time-value:first-of-type').textContent,
+          stop: entry.querySelector('.time-value:last-of-type').textContent,
+          tags: tags,
+          laps: lapsData
+        });
+      });
+      localStorage.setItem('stopwatch_logs', JSON.stringify(logs.reverse()));
+    }
+
+    function loadLogs() {
+      const saved = localStorage.getItem('stopwatch_logs');
+      if (saved) {
+        const logs = JSON.parse(saved);
+        logs.forEach(log => {
+          createLogElement(log.name, log.start, log.stop, log.duration, log.tags || [], log.laps || [], true);
+        });
+      }
+    }
 
     // ── Utilities ─────────────────────────────────────────────────────────────
     function fmtElapsed(ms) {
@@ -281,7 +979,10 @@
     }
 
     function fmtWall(date) {
-      return date.toLocaleTimeString([], {
+      return date.toLocaleString([], {
+        month  : 'short',
+        day    : 'numeric',
+        year   : 'numeric',
         hour   : '2-digit',
         minute : '2-digit',
         second : '2-digit'
@@ -297,6 +998,19 @@
 
     function showLogBtn(show) {
       logSessionBtn.style.display = show ? 'block' : 'none';
+      // tagContainer.style.display = show ? 'none' : 'flex'; // Removed this line to keep tags visible
+    }
+
+    function resetTags() {
+      tagBtns.forEach(btn => btn.classList.remove('active'));
+    }
+
+    function getSelectedTags() {
+      const active = [];
+      tagBtns.forEach(btn => {
+        if (btn.classList.contains('active')) active.push(btn.getAttribute('data-tag'));
+      });
+      return active;
     }
 
     function tick() {
@@ -306,93 +1020,435 @@
       msEl.textContent   = cs;
     }
 
+    function fmtLap(ms) {
+      const { main, cs } = fmtElapsed(ms);
+      return `${main}.${cs}`;
+    }
+
+    function renderLapRow(index, lapMs, totalMs) {
+      const optionsHtml = LAP_TAGS.map(t => {
+        const label = t || '— Tag —';
+        return `<option value="${escHtml(t)}">${escHtml(label)}</option>`;
+      }).join('');
+
+      const row = document.createElement('div');
+      row.className = 'lap-row';
+      row.innerHTML = `
+        <span class="lap-num">${index}</span>
+        <select class="lap-tag-select">${optionsHtml}</select>
+        <span class="lap-split">${fmtLap(lapMs)}</span>
+        <span class="lap-time">${fmtLap(totalMs)}</span>
+      `;
+
+      const tagSelect = row.querySelector('.lap-tag-select');
+      tagSelect.addEventListener('change', () => { laps[index - 1].tag = tagSelect.value; });
+
+      lapList.prepend(row);
+    }
+
+    function clearLaps() {
+      laps = [];
+      lastLapMs = 0;
+      lapList.innerHTML = '';
+      lapSection.style.display = 'none';
+    }
+
+    function updateButtons() {
+      if (running) {
+        // Right = STOP, Left = LAP
+        rightBtn.textContent = 'STOP';
+        rightBtn.classList.add('is-stop');
+        leftBtn.textContent  = 'LAP';
+        leftBtn.classList.add('is-lap');
+      } else if (stopped) {
+        // Right = START (resume), Left = RESET
+        rightBtn.textContent = 'START';
+        rightBtn.classList.remove('is-stop');
+        leftBtn.textContent  = 'RESET';
+        leftBtn.classList.remove('is-lap');
+      } else {
+        // Initial state
+        rightBtn.textContent = 'START';
+        rightBtn.classList.remove('is-stop');
+        leftBtn.textContent  = 'RESET';
+        leftBtn.classList.remove('is-lap');
+      }
+    }
+
     function refreshLogCount() {
       logCountEl.textContent = `${loggedCount} session${loggedCount !== 1 ? 's' : ''}`;
     }
 
     // ── Stopwatch controls ────────────────────────────────────────────────────
-    startBtn.addEventListener('click', () => {
-      startWall = new Date();
-      perfStart = performance.now();
-      ticker    = setInterval(tick, 10);
-
-      startBtn.disabled = true;
-      stopBtn.disabled  = false;
-      showLogBtn(false);
+    // Right button: START / STOP toggle
+    rightBtn.addEventListener('click', () => {
+      if (!running) {
+        // START
+        if (!startWall) startWall = new Date();
+        perfStart = performance.now();
+        ticker    = setInterval(tick, 10);
+        running   = true;
+        stopped   = false;
+        showLogBtn(false);
+        updateButtons();
+        saveTimerState();
+      } else {
+        // STOP
+        elapsed += performance.now() - perfStart;
+        clearInterval(ticker);
+        ticker  = null;
+        running = false;
+        stopped = true;
+        showLogBtn(true);
+        updateButtons();
+        saveTimerState();
+      }
     });
 
-    stopBtn.addEventListener('click', () => {
-      elapsed += performance.now() - perfStart;
-      clearInterval(ticker);
-      ticker = null;
+    // Left button: LAP (while running) / RESET (while stopped)
+    leftBtn.addEventListener('click', () => {
+      if (running) {
+        // LAP
+        const totalMs = elapsed + (performance.now() - perfStart);
+        const lapMs   = totalMs - lastLapMs;
+        lastLapMs     = totalMs;
+        laps.push({ lapMs, totalMs, tag: '' });
+        lapSection.style.display = 'flex';
+        renderLapRow(laps.length, lapMs, totalMs);
+        saveTimerState();
+      } else {
+        // RESET
+        clearInterval(ticker);
+        ticker    = null;
+        elapsed   = 0;
+        perfStart = 0;
+        startWall = null;
+        running   = false;
+        stopped   = false;
 
-      startBtn.disabled = false;
-      stopBtn.disabled  = true;
-      showLogBtn(true);
+        timeEl.textContent = '00:00';
+        msEl.textContent   = '00';
+
+        showLogBtn(false);
+        resetTags();
+        clearLaps();
+        updateButtons();
+        clearTimerState();
+      }
     });
 
-    resetBtn.addEventListener('click', () => {
-      clearInterval(ticker);
-      ticker    = null;
-      elapsed   = 0;
-      perfStart = 0;
-      startWall = null;
-
-      timeEl.textContent = '00:00';
-      msEl.textContent   = '00';
-
-      startBtn.disabled = false;
-      stopBtn.disabled  = true;
-      showLogBtn(false);
+    // ── Tag Selection ─────────────────────────────────────────────────────────
+    tagBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wasActive = btn.classList.contains('active');
+        resetTags();
+        if (!wasActive) btn.classList.add('active');
+        if (running || stopped) saveTimerState();
+      });
     });
 
     // ── Log session button ────────────────────────────────────────────────────
     logSessionBtn.addEventListener('click', () => {
       sessionIndex++;
+      const stopWall = new Date();
+      const tags = getSelectedTags();
+      const savedElapsed  = elapsed;
+      const savedStartWall = startWall;
+
+      // Save laps snapshot, then reset
+      const savedLaps = laps.map(l => ({ lapMs: l.lapMs, totalMs: l.totalMs, tag: l.tag }));
+
+      // Reset timer FIRST
+      clearInterval(ticker);
+      ticker    = null;
+      elapsed   = 0;
+      perfStart = 0;
+      startWall = null;
+      timeEl.textContent = '00:00';
+      msEl.textContent   = '00';
+      running = false;
+      stopped = false;
+      logSessionBtn.style.display = 'none';
+      resetTags();
+      clearLaps();
+      updateButtons();
+      clearTimerState();
+
+      // Then log using saved values
       appendLogEntry(
         `Session ${sessionIndex}`,
-        startWall,
-        new Date(),
-        elapsed
+        savedStartWall,
+        stopWall,
+        savedElapsed,
+        tags,
+        savedLaps
       );
-      showLogBtn(false);
+    });
+
+    // ── Export CSV ──────────────────────────────────────────────────────────
+    function updateExportCount() {
+      const count = logEntriesEl.querySelectorAll('.log-entry.selected').length;
+      exportSelCount.textContent = `${count} selected`;
+      exportGoBtn.disabled = count === 0;
+    }
+
+    function enterSelectMode() {
+      logSection.classList.add('select-mode');
+      updateExportCount();
+    }
+
+    function exitSelectMode() {
+      logSection.classList.remove('select-mode');
+      logEntriesEl.querySelectorAll('.log-entry').forEach(e => {
+        e.classList.remove('selected');
+        e.querySelector('.entry-checkbox').checked = false;
+      });
+      exportDateInput.value = '';
+    }
+
+    function getEntryDate(entry) {
+      const startText = entry.querySelector('.time-value:first-of-type').textContent;
+      const parsed = new Date(startText);
+      if (!isNaN(parsed)) return parsed;
+      return null;
+    }
+
+    function selectByDate(dateStr) {
+      if (!dateStr) return;
+      const target = new Date(dateStr + 'T00:00:00');
+      const tYear = target.getFullYear(), tMonth = target.getMonth(), tDay = target.getDate();
+      logEntriesEl.querySelectorAll('.log-entry').forEach(entry => {
+        const d = getEntryDate(entry);
+        const match = d && d.getFullYear() === tYear && d.getMonth() === tMonth && d.getDate() === tDay;
+        entry.classList.toggle('selected', match);
+        entry.querySelector('.entry-checkbox').checked = match;
+      });
+      updateExportCount();
+    }
+
+    function buildCsvFromEntries(entries) {
+      const rows = [];
+      rows.push(['Session', 'Inspection Type', 'Duration', 'Start', 'Stop', 'Lap #', 'Lap Tag', 'Lap Time', 'Lap Total']);
+      entries.forEach(entry => {
+        const name  = entry.querySelector('.entry-name').textContent;
+        const tags  = Array.from(entry.querySelectorAll('.log-tag')).map(t => t.textContent).join('; ');
+        const dur   = entry.querySelector('.entry-duration').textContent;
+        const start = entry.querySelector('.time-value:first-of-type').textContent;
+        const stop  = entry.querySelector('.time-value:last-of-type').textContent;
+        const laps  = JSON.parse(entry.dataset.laps || '[]');
+        if (laps.length === 0) {
+          rows.push([name, tags, dur, start, stop, '', '', '', '']);
+        } else {
+          laps.forEach((l, i) => {
+            const { main: lm, cs: lc } = fmtElapsed(l.lapMs);
+            const { main: tm, cs: tc } = fmtElapsed(l.totalMs);
+            rows.push([
+              i === 0 ? name : '', i === 0 ? tags : '', i === 0 ? dur : '',
+              i === 0 ? start : '', i === 0 ? stop : '',
+              String(i + 1), l.tag || '', `${lm}.${lc}`, `${tm}.${tc}`
+            ]);
+          });
+        }
+      });
+      return rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    }
+
+    function downloadCsv(csv) {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `stopwatch-sessions-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    exportCsvBtn.addEventListener('click', () => {
+      const entries = logEntriesEl.querySelectorAll('.log-entry');
+      if (entries.length === 0) return;
+      // Default the date picker to today
+      exportDateInput.value = new Date().toISOString().slice(0, 10);
+      enterSelectMode();
+      selectByDate(exportDateInput.value);
+    });
+
+    exportDateInput.addEventListener('change', () => {
+      selectByDate(exportDateInput.value);
+    });
+
+    selectAllBtn.addEventListener('click', () => {
+      const entries = logEntriesEl.querySelectorAll('.log-entry');
+      const allSelected = Array.from(entries).every(e => e.classList.contains('selected'));
+      entries.forEach(e => {
+        e.classList.toggle('selected', !allSelected);
+        e.querySelector('.entry-checkbox').checked = !allSelected;
+      });
+      selectAllBtn.textContent = allSelected ? 'Select All' : 'Deselect All';
+      exportDateInput.value = '';
+      updateExportCount();
+    });
+
+    exportGoBtn.addEventListener('click', () => {
+      const selected = logEntriesEl.querySelectorAll('.log-entry.selected');
+      if (selected.length === 0) return;
+      const csv = buildCsvFromEntries(selected);
+      downloadCsv(csv);
+      exitSelectMode();
+    });
+
+    exportCancelBtn.addEventListener('click', () => {
+      exitSelectMode();
+    });
+
+    // ── Clear Logs ────────────────────────────────────────────────────────────
+    clearLogsBtn.addEventListener('click', () => {
+      if (confirm('Clear all logged sessions?')) {
+        logEntriesEl.querySelectorAll('.log-entry').forEach(e => e.remove());
+        loggedCount = 0;
+        logSection.style.display = 'none';
+        refreshLogCount();
+        localStorage.removeItem('stopwatch_logs');
+      }
     });
 
     // ── Append completed session to log ───────────────────────────────────────
-    function appendLogEntry(name, startWall, stopWall, durationMs) {
+    function appendLogEntry(name, startWall, stopWall, durationMs, tags = [], lapsData = []) {
+      const { main, cs } = fmtElapsed(durationMs);
+      const startStr = startWall ? fmtWall(startWall) : '—';
+      const stopStr  = fmtWall(stopWall);
+      const durationHtml = `${main}<span style="font-size:16px;color:#48487a">.${cs}</span>`;
+      
+      createLogElement(name, startStr, stopStr, durationHtml, tags, lapsData);
+      saveLogs();
+    }
+
+    function createLogElement(name, startStr, stopStr, durationHtml, tags = [], lapsData = [], isLoading = false) {
       loggedCount++;
       logSection.style.display = 'flex';
       refreshLogCount();
 
-      const { main, cs } = fmtElapsed(durationMs);
+      const tagHtml = tags.length > 0
+        ? tags.map(t => `<span class="log-tag">${escHtml(t)}</span>`).join('')
+        : buildTagSelectHtml();
+
+      function buildTagSelectHtml() {
+        const opts = INSPECTION_TAGS.map(t => `<option value="${escHtml(t)}">${escHtml(t)}</option>`).join('');
+        return `<select class="entry-tag-select">
+          <option value="">— Select Inspection Type —</option>
+          ${opts}
+        </select>`;
+      }
+
+      // Build laps detail HTML
+      let lapsHtml = '';
+      if (lapsData.length > 0) {
+        const lapRows = lapsData.map((l, i) => `
+          <span class="el-num">${i + 1}</span>
+          <span class="el-tag">${escHtml(l.tag || '—')}</span>
+          <span class="el-split">${fmtLap(l.lapMs)}</span>
+          <span class="el-total">${fmtLap(l.totalMs)}</span>
+        `).join('');
+
+        lapsHtml = `
+          <button class="entry-expand-btn"><span class="arrow">▶</span> ${lapsData.length} Lap${lapsData.length !== 1 ? 's' : ''}</button>
+          <div class="entry-laps">
+            <div class="entry-laps-table">
+              <span class="elh">#</span>
+              <span class="elh">Tag</span>
+              <span class="elh">Lap</span>
+              <span class="elh">Total</span>
+              ${lapRows}
+            </div>
+          </div>
+        `;
+      }
 
       const card = document.createElement('div');
       card.className = 'log-entry';
+      card.dataset.laps = JSON.stringify(lapsData);
       card.innerHTML = `
         <div class="entry-top">
-          <span class="entry-name" contenteditable="true" spellcheck="false">${escHtml(name)}</span>
-          <span class="entry-duration">${main}<span style="font-size:16px;color:#48487a">.${cs}</span></span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" class="entry-checkbox">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span class="entry-name" contenteditable="true" spellcheck="false">${escHtml(name)}</span>
+              <div class="entry-tags">${tagHtml}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:20px;">
+            <span class="entry-duration">${durationHtml}</span>
+            <div class="entry-actions">
+              <button class="action-btn delete-btn">Delete</button>
+            </div>
+          </div>
         </div>
         <div class="entry-times">
           <div class="time-block">
             <span class="time-label">Start</span>
-            <span class="time-value">${startWall ? fmtWall(startWall) : '—'}</span>
+            <span class="time-value">${startStr}</span>
           </div>
           <div class="time-block">
             <span class="time-label">Stop</span>
-            <span class="time-value">${fmtWall(stopWall)}</span>
+            <span class="time-value">${stopStr}</span>
           </div>
         </div>
+        ${lapsHtml}
       `;
 
-      // Prevent Enter from inserting a newline; blur to confirm edit
-      card.querySelector('.entry-name').addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+      // Expand/collapse laps
+      const expandBtn = card.querySelector('.entry-expand-btn');
+      if (expandBtn) {
+        expandBtn.addEventListener('click', () => {
+          expandBtn.classList.toggle('open');
+          card.querySelector('.entry-laps').classList.toggle('open');
+        });
+      }
+
+      // Delete functionality
+      card.querySelector('.delete-btn').addEventListener('click', () => {
+        if (!confirm('Delete this session?')) return;
+        card.remove();
+        loggedCount--;
+        if (loggedCount === 0) logSection.style.display = 'none';
+        refreshLogCount();
+        saveLogs();
       });
 
-      // Newest session at the top
-      logEntriesEl.prepend(card);
+      // Checkbox for export selection
+      const cb = card.querySelector('.entry-checkbox');
+      cb.addEventListener('change', () => {
+        card.classList.toggle('selected', cb.checked);
+        updateExportCount();
+      });
+
+      // Name edit tracking
+      const nameEl = card.querySelector('.entry-name');
+      nameEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+      });
+      nameEl.addEventListener('blur', () => saveLogs());
+
+      // Inline tag selector (if no tag was pre-selected)
+      const tagSelect = card.querySelector('.entry-tag-select');
+      if (tagSelect) {
+        tagSelect.addEventListener('change', () => {
+          const chosen = tagSelect.value;
+          if (chosen) {
+            const tagsDiv = card.querySelector('.entry-tags');
+            tagsDiv.innerHTML = `<span class="log-tag">${escHtml(chosen)}</span>`;
+            saveLogs();
+          }
+        });
+      }
+
+      // Newest session at the top (after the export toolbar)
+      exportToolbar.after(card);
     }
+
+    // Load existing logs on startup
+    loadLogs();
+    // Restore in-progress timer (must run after DOM + loadLogs)
+    restoreTimerState();
   </script>
 </body>
 </html>
