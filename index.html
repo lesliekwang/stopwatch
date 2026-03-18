@@ -20,9 +20,68 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 64px 24px 96px;
-      padding-bottom: max(96px, env(safe-area-inset-bottom));
+      padding: 0;
+      margin: 0;
+    }
+
+    /* ── Page Views ── */
+    .page {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      min-height: 100vh;
+      padding: 64px 24px 100px;
+      padding-bottom: max(100px, calc(80px + env(safe-area-inset-bottom)));
       gap: 56px;
+    }
+
+    .page.active {
+      display: flex;
+    }
+
+    /* ── Bottom Nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #16162e;
+      border-top: 1px solid #252548;
+      padding: 8px 0;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: #505080;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      padding: 6px 16px;
+      transition: color 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .nav-item svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .nav-item.active {
+      color: #6c63ff;
     }
 
     /* ── Stopwatch ── */
@@ -274,6 +333,54 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+    }
+
+    /* ── Dashboard ── */
+    .dash-content {
+      width: 100%;
+      max-width: 660px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .dash-card {
+      background: #20203e;
+      border: 1px solid #28284e;
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dash-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #404080;
+    }
+
+    .dash-card-value {
+      font-size: 32px;
+      font-weight: 200;
+      color: #c8c8f0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 2px;
+    }
+
+    .dash-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .dash-row .dash-card {
+      flex: 1;
+    }
+
+    .dash-card-value.small {
+      font-size: 22px;
     }
 
     .log-header {
@@ -753,12 +860,19 @@
         font-size: 10px;
         padding: 3px 18px 3px 4px;
       }
+
+      .dash-row {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Stopwatch -->
+  <!-- ═══════════ PAGE: Stopwatch ═══════════ -->
+  <div class="page active" id="pageStopwatch">
+
+    <!-- Stopwatch -->
   <div class="stopwatch">
     <div class="display">
       <span id="time">00:00</span><span class="milliseconds">.<span id="ms">00</span></span>
@@ -793,8 +907,13 @@
     <button id="logSessionBtn" style="display:none">＋  LOG SESSION</button>
   </div>
 
-  <!-- Session Log (hidden until first entry) -->
-  <div class="log-section" id="logSection" style="display:none">
+  </div><!-- /pageStopwatch -->
+
+  <!-- ═══════════ PAGE: Logs ═══════════ -->
+  <div class="page" id="pageLogs">
+
+  <!-- Session Log -->
+  <div class="log-section" id="logSection">
     <div class="log-header">
       <div class="log-header-left">
         <h2>Session Log</h2>
@@ -815,7 +934,59 @@
         <span class="export-toolbar-count" id="exportSelCount">0 selected</span>
       </div>
     </div>
+    <p id="noLogsMsg" style="color:#505080; text-align:center; padding:40px 0; font-size:14px;">No sessions logged yet.</p>
   </div>
+
+  </div><!-- /pageLogs -->
+
+  <!-- ═══════════ PAGE: Dashboard ═══════════ -->
+  <div class="page" id="pageDashboard">
+
+  <div class="dash-content">
+    <h2 style="font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#404080;">Dashboard</h2>
+    <div class="dash-card">
+      <span class="dash-card-label">Total Sessions</span>
+      <span class="dash-card-value" id="dashTotal">0</span>
+    </div>
+    <div class="dash-row">
+      <div class="dash-card">
+        <span class="dash-card-label">Avg Duration</span>
+        <span class="dash-card-value small" id="dashAvg">--:--</span>
+      </div>
+      <div class="dash-card">
+        <span class="dash-card-label">Today's Sessions</span>
+        <span class="dash-card-value small" id="dashToday">0</span>
+      </div>
+    </div>
+    <div class="dash-row">
+      <div class="dash-card">
+        <span class="dash-card-label">Shortest</span>
+        <span class="dash-card-value small" id="dashMin">--:--</span>
+      </div>
+      <div class="dash-card">
+        <span class="dash-card-label">Longest</span>
+        <span class="dash-card-value small" id="dashMax">--:--</span>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /pageDashboard -->
+
+  <!-- ═══════════ Bottom Nav ═══════════ -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-page="pageStopwatch">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+      Timer
+    </button>
+    <button class="nav-item" data-page="pageLogs">
+      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+      Logs
+    </button>
+    <button class="nav-item" data-page="pageDashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm8 16H5v-6h6v6zm0-8H5V5h6v6zm8 8h-6v-6h6v6zm0-8h-6V5h6v6z"/></svg>
+      Dashboard
+    </button>
+  </nav>
 
   <script>
     // ── Stopwatch state ───────────────────────────────────────────────────────
@@ -849,6 +1020,7 @@
     const logEntriesEl  = document.getElementById('logEntries');
     const logCountEl    = document.getElementById('logCount');
     const clearLogsBtn  = document.getElementById('clearLogsBtn');
+    const noLogsMsg     = document.getElementById('noLogsMsg');
     const exportCsvBtn  = document.getElementById('exportCsvBtn');
     const selectAllBtn   = document.getElementById('selectAllBtn');
     const exportGoBtn    = document.getElementById('exportGoBtn');
@@ -1305,7 +1477,7 @@
       if (confirm('Clear all logged sessions?')) {
         logEntriesEl.querySelectorAll('.log-entry').forEach(e => e.remove());
         loggedCount = 0;
-        logSection.style.display = 'none';
+        updateLogVisibility();
         refreshLogCount();
         localStorage.removeItem('stopwatch_logs');
       }
@@ -1324,7 +1496,7 @@
 
     function createLogElement(name, startStr, stopStr, durationHtml, tags = [], lapsData = [], isLoading = false) {
       loggedCount++;
-      logSection.style.display = 'flex';
+      updateLogVisibility();
       refreshLogCount();
 
       const tagHtml = tags.length > 0
@@ -1409,7 +1581,7 @@
         if (!confirm('Delete this session?')) return;
         card.remove();
         loggedCount--;
-        if (loggedCount === 0) logSection.style.display = 'none';
+        if (loggedCount === 0) updateLogVisibility();
         refreshLogCount();
         saveLogs();
       });
@@ -1449,6 +1621,84 @@
     loadLogs();
     // Restore in-progress timer (must run after DOM + loadLogs)
     restoreTimerState();
+    updateLogVisibility();
+
+    // ── Navigation ──────────────────────────────────────────────────────────
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages    = document.querySelectorAll('.page');
+
+    function switchPage(pageId) {
+      pages.forEach(p => p.classList.remove('active'));
+      navItems.forEach(n => n.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
+      if (pageId === 'pageDashboard') updateDashboard();
+    }
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => switchPage(item.dataset.page));
+    });
+
+    // ── Log visibility helper ─────────────────────────────────────────────
+    function updateLogVisibility() {
+      const hasEntries = loggedCount > 0;
+      noLogsMsg.style.display = hasEntries ? 'none' : 'block';
+      logEntriesEl.style.display = hasEntries ? 'block' : 'none';
+    }
+
+    // ── Dashboard ──────────────────────────────────────────────────────────
+    const dashTotal = document.getElementById('dashTotal');
+    const dashAvg   = document.getElementById('dashAvg');
+    const dashToday = document.getElementById('dashToday');
+    const dashMin   = document.getElementById('dashMin');
+    const dashMax   = document.getElementById('dashMax');
+
+    function parseDurationMs(durText) {
+      // durText like "03:25.12" (from textContent which strips inner spans)
+      const m = durText.match(/(\d+):(\d+)\.(\d+)/);
+      if (!m) return 0;
+      return (parseInt(m[1]) * 60 + parseInt(m[2])) * 1000 + parseInt(m[3]) * 10;
+    }
+
+    function fmtDash(ms) {
+      const { main, cs } = fmtElapsed(ms);
+      return `${main}.${cs}`;
+    }
+
+    function updateDashboard() {
+      const entries = document.querySelectorAll('.log-entry');
+      const count = entries.length;
+      dashTotal.textContent = count;
+
+      if (count === 0) {
+        dashAvg.textContent = '--:--';
+        dashToday.textContent = '0';
+        dashMin.textContent = '--:--';
+        dashMax.textContent = '--:--';
+        return;
+      }
+
+      const durations = [];
+      let todayCount = 0;
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+
+      entries.forEach(entry => {
+        const durText = entry.querySelector('.entry-duration').textContent;
+        durations.push(parseDurationMs(durText));
+        const startText = entry.querySelector('.time-value:first-of-type').textContent;
+        const d = new Date(startText);
+        if (!isNaN(d) && `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` === todayStr) {
+          todayCount++;
+        }
+      });
+
+      const total = durations.reduce((a, b) => a + b, 0);
+      dashAvg.textContent = fmtDash(Math.round(total / count));
+      dashToday.textContent = todayCount;
+      dashMin.textContent = fmtDash(Math.min(...durations));
+      dashMax.textContent = fmtDash(Math.max(...durations));
+    }
   </script>
 </body>
 </html>
