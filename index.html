@@ -263,32 +263,35 @@
       color: #5050a0;
     }
 
-    .lap-tag-select {
-      font-size: 11px;
-      font-weight: 600;
-      color: #7070b8;
+    .lap-tag-btns {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .lap-tag-btn {
+      font-size: 9px;
+      font-weight: 700;
+      color: #5050a0;
       background: #1a1a34;
       border: 1px solid #303060;
-      border-radius: 6px;
-      padding: 4px 6px;
+      border-radius: 5px;
+      padding: 3px 7px;
       cursor: pointer;
-      outline: none;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235050a0'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 6px center;
-      padding-right: 20px;
-      transition: border-color 0.2s;
+      transition: all 0.15s;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
-    .lap-tag-select:focus {
+    .lap-tag-btn:hover {
+      border-color: #5050a0;
+      color: #7070b8;
+    }
+
+    .lap-tag-btn.active {
+      background: #404080;
       border-color: #6060c0;
-    }
-
-    .lap-tag-select option {
-      background: #1a1a34;
-      color: #b0b0d8;
+      color: #fff;
     }
 
     .lap-split {
@@ -413,6 +416,26 @@
 
     .dash-card-value.small {
       font-size: 22px;
+    }
+
+    .dash-card-sublabel {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #4a4a80;
+      margin-top: -4px;
+    }
+
+    .dash-card-secondary {
+      font-size: 15px;
+      font-weight: 300;
+      color: #7878b0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      margin-top: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #2a2a50;
     }
 
     .log-header {
@@ -761,8 +784,100 @@
       font-weight: 600;
     }
 
-    .entry-laps-table .el-tag {
-      color: #6868a0;
+    .entry-laps-table .el-tag-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .entry-laps-table .el-tag-display {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .el-tag-pill {
+      font-size: 9px;
+      font-weight: 700;
+      color: #7070b8;
+      background: rgba(112, 112, 184, 0.12);
+      border: 1px solid rgba(112, 112, 184, 0.2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .el-tag-none {
+      color: #3a3a6a;
+      font-size: 12px;
+    }
+
+    .el-tag-edit-btn {
+      background: none;
+      border: none;
+      color: #3a3a6a;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      padding: 1px 4px;
+      transition: color 0.15s;
+    }
+
+    .el-tag-edit-btn:hover {
+      color: #6c63ff;
+    }
+
+    .entry-laps-table .el-tag-btns {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .el-tag-done-btn {
+      background: rgba(0, 200, 83, 0.1);
+      border: 1px solid rgba(0, 200, 83, 0.4);
+      color: #00c853;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 7px;
+      border-radius: 4px;
+      transition: all 0.15s;
+      line-height: 1;
+    }
+
+    .el-tag-done-btn:hover {
+      border-color: #00c853;
+      background: rgba(0, 200, 83, 0.2);
+    }
+
+    .log-lap-tag-btn {
+      font-size: 8px;
+      font-weight: 700;
+      color: #5050a0;
+      background: #1a1a34;
+      border: 1px solid #303060;
+      border-radius: 4px;
+      padding: 2px 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .log-lap-tag-btn:hover {
+      border-color: #5050a0;
+      color: #7070b8;
+    }
+
+    .log-lap-tag-btn.active {
+      background: #404080;
+      border-color: #6060c0;
+      color: #fff;
     }
 
     .entry-laps-table .el-split {
@@ -802,6 +917,220 @@
       font-size: 13px;
       color: #6868a8;
       font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Avg Comparison Chart ── */
+    .avg-chart {
+      margin-top: 4px;
+    }
+
+    .avg-bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .avg-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avg-bar-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #5858a0;
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    .avg-bar-track {
+      flex: 1;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .avg-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .avg-bar-fill#avgBarPA {
+      background: linear-gradient(90deg, #6c63ff, #8b83ff);
+    }
+
+    .avg-bar-fill#avgBarSD {
+      background: linear-gradient(90deg, #ff6b9d, #ff8db5);
+    }
+
+    .avg-bar-value {
+      font-size: 14px;
+      font-weight: 300;
+      color: #8888c0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      width: 70px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .avg-empty {
+      color: #3a3a6a;
+      font-size: 12px;
+      text-align: center;
+      padding: 12px 0;
+      display: none;
+    }
+
+    /* ── Accumulation Chart ── */
+    .chart-card {
+      gap: 20px;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #5050a0;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.15);
+      flex-shrink: 0;
+    }
+
+    .chart-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chart-group-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #5858a0;
+    }
+
+    .chart-area {
+      position: relative;
+      min-height: 40px;
+    }
+
+    .chart-heatmap {
+      position: relative;
+      height: 40px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .chart-heatmap .hm-seg {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-right: 1px solid rgba(26, 26, 46, 0.4);
+    }
+
+    .chart-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 6px;
+    }
+
+    .chart-row {
+      position: relative;
+      height: 20px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .chart-row-label {
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 8px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.5px;
+      z-index: 2;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .chart-row .row-seg {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-right: 1px solid rgba(26, 26, 46, 0.3);
+    }
+
+    .chart-expand-btn {
+      background: none;
+      border: none;
+      color: #3a3a6a;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.15s;
+      text-align: left;
+    }
+
+    .chart-expand-btn:hover {
+      color: #6c63ff;
+    }
+
+    .chart-time-axis {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+    }
+
+    .chart-time-axis span {
+      font-size: 9px;
+      color: #3a3a6a;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-empty {
+      color: #3a3a6a;
+      font-size: 12px;
+      text-align: center;
+      padding: 12px 0;
+      display: none;
     }
 
     /* ── Mobile Responsive (iPhone 15: 393px) ── */
@@ -888,9 +1217,9 @@
         gap: 6px;
       }
 
-      .lap-tag-select {
-        font-size: 10px;
-        padding: 3px 18px 3px 4px;
+      .lap-tag-btn {
+        font-size: 8px;
+        padding: 2px 5px;
       }
 
       .dash-row {
@@ -988,22 +1317,72 @@
     </div>
     <div class="dash-row">
       <div class="dash-card">
-        <span class="dash-card-label">Avg Duration</span>
-        <span class="dash-card-value small" id="dashAvg">--:--</span>
+        <span class="dash-card-label">Partial Automation</span>
+        <span class="dash-card-value small" id="dashPACount">0</span>
+        <span class="dash-card-sublabel">sessions</span>
+        <span class="dash-card-secondary" id="dashPAAvg">Avg: --:--</span>
       </div>
       <div class="dash-card">
-        <span class="dash-card-label">Today's Sessions</span>
-        <span class="dash-card-value small" id="dashToday">0</span>
+        <span class="dash-card-label">Suggested Damages</span>
+        <span class="dash-card-value small" id="dashSDCount">0</span>
+        <span class="dash-card-sublabel">sessions</span>
+        <span class="dash-card-secondary" id="dashSDAvg">Avg: --:--</span>
       </div>
     </div>
-    <div class="dash-row">
-      <div class="dash-card">
-        <span class="dash-card-label">Shortest</span>
-        <span class="dash-card-value small" id="dashMin">--:--</span>
+
+    <!-- Average Comparison Chart -->
+    <div class="dash-card">
+      <span class="dash-card-label">Avg Total Time</span>
+      <div class="avg-chart" id="avgChart">
+        <div class="avg-bar-group">
+          <div class="avg-bar-row">
+            <span class="avg-bar-label">PA</span>
+            <div class="avg-bar-track">
+              <div class="avg-bar-fill" id="avgBarPA"></div>
+            </div>
+            <span class="avg-bar-value" id="avgValPA">--:--</span>
+          </div>
+          <div class="avg-bar-row">
+            <span class="avg-bar-label">SD</span>
+            <div class="avg-bar-track">
+              <div class="avg-bar-fill" id="avgBarSD"></div>
+            </div>
+            <span class="avg-bar-value" id="avgValSD">--:--</span>
+          </div>
+        </div>
+        <p class="avg-empty" id="avgEmpty">No sessions yet</p>
       </div>
-      <div class="dash-card">
-        <span class="dash-card-label">Longest</span>
-        <span class="dash-card-value small" id="dashMax">--:--</span>
+    </div>
+
+    <!-- Accumulation Chart -->
+    <div class="dash-card chart-card">
+      <div class="chart-header">
+        <span class="dash-card-label">Time Breakdown</span>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:#fff;"></span>Panels Ext</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#eb4034;"></span>Other Ext</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#4263eb;"></span>Int</span>
+        </div>
+      </div>
+      <div class="chart-group" id="chartPA">
+        <span class="chart-group-label">Partial Automation</span>
+        <div class="chart-area">
+          <div class="chart-heatmap" id="heatmapPA"></div>
+          <button class="chart-expand-btn" id="expandPA">Show sessions</button>
+          <div class="chart-rows" id="rowsPA" style="display:none;"></div>
+        </div>
+        <div class="chart-time-axis" id="axisPA"></div>
+        <p class="chart-empty" id="emptyPA">No sessions yet</p>
+      </div>
+      <div class="chart-group" id="chartSD">
+        <span class="chart-group-label">Suggested Damages</span>
+        <div class="chart-area">
+          <div class="chart-heatmap" id="heatmapSD"></div>
+          <button class="chart-expand-btn" id="expandSD">Show sessions</button>
+          <div class="chart-rows" id="rowsSD" style="display:none;"></div>
+        </div>
+        <div class="chart-time-axis" id="axisSD"></div>
+        <p class="chart-empty" id="emptySD">No sessions yet</p>
       </div>
     </div>
   </div>
@@ -1078,7 +1457,7 @@
 
     let laps        = [];
     let lastLapMs   = 0;
-    const LAP_TAGS  = ['', 'EXT (panel)', 'EXT (other)', 'INT', 'DATA ENTRY + EST'];
+    const LAP_TAGS  = ['PANELS EXT', 'OTHER EXT', 'INT'];
 
     let running = false;
     let stopped = false;
@@ -1154,10 +1533,7 @@
       if (laps.length) {
         lapSection.style.display = 'flex';
         laps.forEach((l, i) => {
-          renderLapRow(i + 1, l.lapMs, l.totalMs);
-          const rows = lapList.querySelectorAll('.lap-row');
-          const row = rows[0];
-          if (l.tag) row.querySelector('.lap-tag-select').value = l.tag;
+          renderLapRow(i + 1, l.lapMs, l.totalMs, l.tags || (l.tag ? l.tag.split(', ') : []));
         });
       }
 
@@ -1242,23 +1618,34 @@
       return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     }
 
-    function renderLapRow(index, lapMs, totalMs) {
-      const optionsHtml = LAP_TAGS.map(t => {
-        const label = t || '— Tag —';
-        return `<option value="${escHtml(t)}">${escHtml(label)}</option>`;
+    function renderLapRow(index, lapMs, totalMs, existingTags) {
+      const tagsArr = existingTags || [];
+      const tagBtnsHtml = LAP_TAGS.map(t => {
+        const active = tagsArr.includes(t) ? ' active' : '';
+        return `<button class="lap-tag-btn${active}" data-tag="${escHtml(t)}">${escHtml(t)}</button>`;
       }).join('');
 
       const row = document.createElement('div');
       row.className = 'lap-row';
       row.innerHTML = `
         <span class="lap-num">${index}</span>
-        <select class="lap-tag-select">${optionsHtml}</select>
+        <div class="lap-tag-btns">${tagBtnsHtml}</div>
         <span class="lap-split">${fmtLap(lapMs)}</span>
         <span class="lap-time">${fmtLap(totalMs)}</span>
       `;
 
-      const tagSelect = row.querySelector('.lap-tag-select');
-      tagSelect.addEventListener('change', () => { laps[index - 1].tag = tagSelect.value; });
+      row.querySelectorAll('.lap-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('active');
+          const lap = laps[index - 1];
+          if (!lap) return;
+          const activeTags = Array.from(row.querySelectorAll('.lap-tag-btn.active'))
+            .map(b => b.dataset.tag);
+          lap.tags = activeTags;
+          // Keep legacy .tag as comma-joined for CSV compat
+          lap.tag = activeTags.join(', ');
+        });
+      });
 
       lapList.prepend(row);
     }
@@ -1330,12 +1717,25 @@
 
       let lapsHtml = '';
       if (session.laps && session.laps.length > 0) {
-        const lapRows = session.laps.map((l, i) => `
-          <span class="el-num">${i + 1}</span>
-          <span class="el-tag">${escHtml(l.tag || '—')}</span>
-          <span class="el-split">${fmtLap(l.lapMs)}</span>
-          <span class="el-total">${fmtLap(l.totalMs)}</span>
-        `).join('');
+        const lapRows = session.laps.map((l, i) => {
+          const activeTags = l.tags || (l.tag ? l.tag.split(', ').filter(Boolean) : []);
+          const staticTagHtml = activeTags.length > 0
+            ? activeTags.map(t => `<span class="el-tag-pill">${escHtml(t)}</span>`).join('')
+            : '<span class="el-tag-none">—</span>';
+          const tagBtnsHtml = LAP_TAGS.map(t => {
+            const active = activeTags.includes(t) ? ' active' : '';
+            return `<button class="log-lap-tag-btn${active}" data-tag="${escHtml(t)}" data-lap-index="${i}">${escHtml(t)}</button>`;
+          }).join('');
+          return `
+            <span class="el-num">${i + 1}</span>
+            <div class="el-tag-cell">
+              <div class="el-tag-display">${staticTagHtml}<button class="el-tag-edit-btn" data-lap-index="${i}">Edit</button></div>
+              <div class="el-tag-btns" style="display:none;">${tagBtnsHtml}<button class="el-tag-done-btn" data-lap-index="${i}">✓</button></div>
+            </div>
+            <span class="el-split">${fmtLap(l.lapMs)}</span>
+            <span class="el-total">${fmtLap(l.totalMs)}</span>
+          `;
+        }).join('');
 
         lapsHtml = `
           <button class="entry-expand-btn"><span class="arrow">▶</span> ${session.laps.length} Lap${session.laps.length !== 1 ? 's' : ''}</button>
@@ -1391,6 +1791,61 @@
           card.querySelector('.entry-laps').classList.toggle('open');
         });
       }
+
+      // Editable lap tags in log — edit/done toggle
+      card.querySelectorAll('.el-tag-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cell = btn.closest('.el-tag-cell');
+          cell.querySelector('.el-tag-display').style.display = 'none';
+          cell.querySelector('.el-tag-btns').style.display = 'flex';
+        });
+      });
+
+      card.querySelectorAll('.el-tag-done-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cell = btn.closest('.el-tag-cell');
+          const lapIndex = parseInt(btn.dataset.lapIndex);
+          const activeTags = Array.from(cell.querySelectorAll('.log-lap-tag-btn.active'))
+            .map(b => b.dataset.tag);
+
+          // Update data layer
+          const s = sessions.find(s => s.id === session.id);
+          if (s && s.laps[lapIndex]) {
+            s.laps[lapIndex].tags = activeTags;
+            s.laps[lapIndex].tag = activeTags.join(', ');
+            saveSessions();
+          }
+
+          // Update static display
+          const display = cell.querySelector('.el-tag-display');
+          const editBtn = display.querySelector('.el-tag-edit-btn');
+          display.innerHTML = '';
+          if (activeTags.length > 0) {
+            activeTags.forEach(t => {
+              const pill = document.createElement('span');
+              pill.className = 'el-tag-pill';
+              pill.textContent = t;
+              display.appendChild(pill);
+            });
+          } else {
+            const none = document.createElement('span');
+            none.className = 'el-tag-none';
+            none.textContent = '—';
+            display.appendChild(none);
+          }
+          display.appendChild(editBtn);
+
+          // Switch back to static view
+          cell.querySelector('.el-tag-btns').style.display = 'none';
+          display.style.display = 'flex';
+        });
+      });
+
+      card.querySelectorAll('.log-lap-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('active');
+        });
+      });
 
       // Delete — two-tap confirm (no confirm() dialog, works on all devices)
       const deleteBtn = card.querySelector('.delete-btn');
@@ -1454,12 +1909,21 @@
     // ══════════════════════════════════════════════════════════════════════════
     rightBtn.addEventListener('click', () => {
       if (!running) {
-        if (!startWall) startWall = new Date();
+        const isFreshStart = !startWall;
+        if (isFreshStart) startWall = new Date();
         perfStart = performance.now();
         ticker    = setInterval(tick, 10);
         running   = true;
         stopped   = false;
         updateButtons();
+
+        // Auto-create lap 1 only on fresh start (timer at 00:00)
+        if (isFreshStart && laps.length === 0) {
+          laps.push({ lapMs: 0, totalMs: 0, tag: '', tags: [] });
+          lapSection.style.display = 'flex';
+          renderLapRow(1, 0, 0);
+        }
+
         saveTimerState();
       } else {
         elapsed += performance.now() - perfStart;
@@ -1477,9 +1941,24 @@
         const totalMs = elapsed + (performance.now() - perfStart);
         const lapMs   = totalMs - lastLapMs;
         lastLapMs     = totalMs;
-        laps.push({ lapMs, totalMs, tag: '' });
-        lapSection.style.display = 'flex';
-        renderLapRow(laps.length, lapMs, totalMs);
+
+        // Finalize the current (open) lap's timing
+        const currentLap = laps[laps.length - 1];
+        if (currentLap) {
+          currentLap.lapMs = lapMs;
+          currentLap.totalMs = totalMs;
+          // Update the displayed split/total for the current lap row
+          const rows = lapList.querySelectorAll('.lap-row');
+          const currentRow = rows[0]; // newest is prepended, so index 0
+          if (currentRow) {
+            currentRow.querySelector('.lap-split').textContent = fmtLap(lapMs);
+            currentRow.querySelector('.lap-time').textContent = fmtLap(totalMs);
+          }
+        }
+
+        // Open next lap
+        laps.push({ lapMs: 0, totalMs: 0, tag: '', tags: [] });
+        renderLapRow(laps.length, 0, 0);
         saveTimerState();
       } else {
         clearInterval(ticker);
@@ -1517,9 +1996,19 @@
       sessionIndex++;
       const stopWall = new Date();
       const tags = getSelectedTags();
-      const savedElapsed   = elapsed;
+      const savedElapsed   = running ? elapsed + (performance.now() - perfStart) : elapsed;
       const savedStartWall = startWall;
-      const savedLaps = laps.map(l => ({ lapMs: l.lapMs, totalMs: l.totalMs, tag: l.tag }));
+
+      // Finalize the last open lap before saving
+      if (laps.length > 0) {
+        const lastLap = laps[laps.length - 1];
+        if (lastLap.lapMs === 0 && savedElapsed > 0) {
+          lastLap.totalMs = savedElapsed;
+          lastLap.lapMs = savedElapsed - lastLapMs;
+        }
+      }
+
+      const savedLaps = laps.map(l => ({ lapMs: l.lapMs, totalMs: l.totalMs, tag: l.tag, tags: l.tags || [] }));
 
       // Reset timer
       clearInterval(ticker);
@@ -1731,11 +2220,11 @@
     // ══════════════════════════════════════════════════════════════════════════
     // DASHBOARD — reads from data layer
     // ══════════════════════════════════════════════════════════════════════════
-    const dashTotal = document.getElementById('dashTotal');
-    const dashAvg   = document.getElementById('dashAvg');
-    const dashToday = document.getElementById('dashToday');
-    const dashMin   = document.getElementById('dashMin');
-    const dashMax   = document.getElementById('dashMax');
+    const dashTotal   = document.getElementById('dashTotal');
+    const dashPACount = document.getElementById('dashPACount');
+    const dashPAAvg   = document.getElementById('dashPAAvg');
+    const dashSDCount = document.getElementById('dashSDCount');
+    const dashSDAvg   = document.getElementById('dashSDAvg');
 
     function fmtDash(ms) {
       const { main, cs } = fmtElapsed(ms);
@@ -1743,36 +2232,199 @@
     }
 
     function updateDashboard() {
-      const count = sessions.length;
-      dashTotal.textContent = count;
+      dashTotal.textContent = sessions.length;
 
-      if (count === 0) {
-        dashAvg.textContent = '--:--';
-        dashToday.textContent = '0';
-        dashMin.textContent = '--:--';
-        dashMax.textContent = '--:--';
+      const pa = sessions.filter(s => (s.tags || []).includes('Partial Automation'));
+      const sd = sessions.filter(s => (s.tags || []).includes('Suggested Damages'));
+
+      dashPACount.textContent = pa.length;
+      dashSDCount.textContent = sd.length;
+
+      if (pa.length > 0) {
+        const avg = pa.reduce((sum, s) => sum + s.durationMs, 0) / pa.length;
+        dashPAAvg.textContent = `Avg: ${fmtDash(Math.round(avg))}`;
+      } else {
+        dashPAAvg.textContent = 'Avg: --:--';
+      }
+
+      if (sd.length > 0) {
+        const avg = sd.reduce((sum, s) => sum + s.durationMs, 0) / sd.length;
+        dashSDAvg.textContent = `Avg: ${fmtDash(Math.round(avg))}`;
+      } else {
+        dashSDAvg.textContent = 'Avg: --:--';
+      }
+
+      // Render accumulation charts
+      renderChart(pa, 'heatmapPA', 'rowsPA', 'axisPA', 'expandPA', 'emptyPA');
+      renderChart(sd, 'heatmapSD', 'rowsSD', 'axisSD', 'expandSD', 'emptySD');
+
+      // Render avg comparison chart
+      renderAvgChart(pa, sd);
+    }
+
+    // ── Chart color system ──────────────────────────────────────────────────
+    const TAG_COLORS = {
+      'PANELS EXT': { r: 255, g: 255, b: 255 },
+      'OTHER EXT':  { r: 235, g: 64,  b: 52 },
+      'INT':        { r: 66,  g: 99,  b: 235 }
+    };
+
+    function getSegmentColor(tags) {
+      if (!tags || tags.length === 0) return 'rgba(80, 80, 130, 1)'; // untagged: muted purple
+      const blended = { r: 0, g: 0, b: 0 };
+      tags.forEach(t => {
+        const c = TAG_COLORS[t];
+        if (c) {
+          blended.r += c.r;
+          blended.g += c.g;
+          blended.b += c.b;
+        }
+      });
+      const n = tags.filter(t => TAG_COLORS[t]).length || 1;
+      blended.r = Math.round(blended.r / n);
+      blended.g = Math.round(blended.g / n);
+      blended.b = Math.round(blended.b / n);
+      return `rgb(${blended.r}, ${blended.g}, ${blended.b})`;
+    }
+
+    // ── Chart rendering ─────────────────────────────────────────────────────
+    function renderChart(groupSessions, heatmapId, rowsId, axisId, expandId, emptyId) {
+      const heatmapEl = document.getElementById(heatmapId);
+      const rowsEl    = document.getElementById(rowsId);
+      const axisEl    = document.getElementById(axisId);
+      const expandBtn = document.getElementById(expandId);
+      const emptyEl   = document.getElementById(emptyId);
+
+      heatmapEl.innerHTML = '';
+      rowsEl.innerHTML = '';
+      axisEl.innerHTML = '';
+
+      const sessionsWithLaps = groupSessions.filter(s => s.laps && s.laps.length > 0);
+
+      if (sessionsWithLaps.length === 0) {
+        emptyEl.style.display = 'block';
+        heatmapEl.style.display = 'none';
+        expandBtn.style.display = 'none';
+        axisEl.style.display = 'none';
         return;
       }
 
-      const durations = sessions.map(s => s.durationMs);
-      let todayCount = 0;
-      const now = new Date();
-      const todayStr = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+      emptyEl.style.display = 'none';
+      heatmapEl.style.display = 'block';
+      expandBtn.style.display = 'block';
+      axisEl.style.display = 'flex';
 
-      sessions.forEach(s => {
-        if (s.startISO) {
-          const d = new Date(s.startISO);
-          if (`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` === todayStr) {
-            todayCount++;
-          }
-        }
+      // Find max duration across all sessions in this group for scale
+      const maxDuration = Math.max(...sessionsWithLaps.map(s => s.durationMs));
+      if (maxDuration === 0) return;
+
+      // Base opacity: thinner when more sessions so accumulation is visible
+      const baseOpacity = Math.min(0.5, Math.max(0.12, 1.2 / sessionsWithLaps.length));
+
+      // Render heatmap (overlapping bars)
+      sessionsWithLaps.forEach(s => {
+        let offset = 0;
+        (s.laps || []).forEach(lap => {
+          if (lap.lapMs <= 0) return;
+          const leftPct  = (offset / maxDuration) * 100;
+          const widthPct = (lap.lapMs / maxDuration) * 100;
+          const tags = lap.tags || (lap.tag ? lap.tag.split(', ').filter(Boolean) : []);
+          const color = getSegmentColor(tags);
+
+          const seg = document.createElement('div');
+          seg.className = 'hm-seg';
+          seg.style.left = leftPct + '%';
+          seg.style.width = widthPct + '%';
+          seg.style.background = color;
+          seg.style.opacity = baseOpacity;
+          heatmapEl.appendChild(seg);
+
+          offset += lap.lapMs;
+        });
       });
 
-      const total = durations.reduce((a, b) => a + b, 0);
-      dashAvg.textContent = fmtDash(Math.round(total / count));
-      dashToday.textContent = todayCount;
-      dashMin.textContent = fmtDash(Math.min(...durations));
-      dashMax.textContent = fmtDash(Math.max(...durations));
+      // Render individual session rows (hidden by default)
+      sessionsWithLaps.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'chart-row';
+
+        const label = document.createElement('span');
+        label.className = 'chart-row-label';
+        label.textContent = s.name;
+        row.appendChild(label);
+
+        let offset = 0;
+        (s.laps || []).forEach(lap => {
+          if (lap.lapMs <= 0) return;
+          const leftPct  = (offset / maxDuration) * 100;
+          const widthPct = (lap.lapMs / maxDuration) * 100;
+          const tags = lap.tags || (lap.tag ? lap.tag.split(', ').filter(Boolean) : []);
+          const color = getSegmentColor(tags);
+
+          const seg = document.createElement('div');
+          seg.className = 'row-seg';
+          seg.style.left = leftPct + '%';
+          seg.style.width = widthPct + '%';
+          seg.style.background = color;
+          seg.style.opacity = 0.7;
+          row.appendChild(seg);
+
+          offset += lap.lapMs;
+        });
+
+        rowsEl.appendChild(row);
+      });
+
+      // Time axis
+      const steps = 5;
+      for (let i = 0; i <= steps; i++) {
+        const ms = (maxDuration / steps) * i;
+        const span = document.createElement('span');
+        span.textContent = fmtDash(Math.round(ms));
+        axisEl.appendChild(span);
+      }
+
+      // Expand/collapse toggle
+      let expanded = rowsEl.style.display !== 'none';
+      expandBtn.textContent = expanded ? 'Hide sessions' : 'Show sessions';
+      // Remove old listener by replacing node
+      const newBtn = expandBtn.cloneNode(true);
+      expandBtn.parentNode.replaceChild(newBtn, expandBtn);
+      newBtn.addEventListener('click', () => {
+        expanded = !expanded;
+        rowsEl.style.display = expanded ? 'flex' : 'none';
+        newBtn.textContent = expanded ? 'Hide sessions' : 'Show sessions';
+      });
+    }
+
+    // ── Avg comparison chart ────────────────────────────────────────────────
+    function renderAvgChart(pa, sd) {
+      const barPA   = document.getElementById('avgBarPA');
+      const barSD   = document.getElementById('avgBarSD');
+      const valPA   = document.getElementById('avgValPA');
+      const valSD   = document.getElementById('avgValSD');
+      const emptyEl = document.getElementById('avgEmpty');
+      const group   = document.querySelector('.avg-bar-group');
+
+      const avgPA = pa.length > 0 ? pa.reduce((sum, s) => sum + s.durationMs, 0) / pa.length : 0;
+      const avgSD = sd.length > 0 ? sd.reduce((sum, s) => sum + s.durationMs, 0) / sd.length : 0;
+
+      if (avgPA === 0 && avgSD === 0) {
+        group.style.display = 'none';
+        emptyEl.style.display = 'block';
+        return;
+      }
+
+      group.style.display = 'flex';
+      emptyEl.style.display = 'none';
+
+      const maxAvg = Math.max(avgPA, avgSD);
+
+      barPA.style.width = maxAvg > 0 ? ((avgPA / maxAvg) * 100) + '%' : '0%';
+      barSD.style.width = maxAvg > 0 ? ((avgSD / maxAvg) * 100) + '%' : '0%';
+
+      valPA.textContent = avgPA > 0 ? fmtDash(Math.round(avgPA)) : '--:--';
+      valSD.textContent = avgSD > 0 ? fmtDash(Math.round(avgSD)) : '--:--';
     }
 
     // ══════════════════════════════════════════════════════════════════════════
