@@ -1027,26 +1027,65 @@
   </nav>
 
   <script>
-    // ── Stopwatch state ───────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // DATA LAYER — sessions array is the single source of truth
+    // ══════════════════════════════════════════════════════════════════════════
+    let sessions = [];  // Array of session objects (see addSession for shape)
+
+    function saveSessions() {
+      localStorage.setItem('stopwatch_sessions', JSON.stringify(sessions));
+      localStorage.setItem('stopwatch_sessionIndex', JSON.stringify(sessionIndex));
+    }
+
+    function loadSessions() {
+      try {
+        const raw = localStorage.getItem('stopwatch_sessions');
+        if (raw) sessions = JSON.parse(raw);
+        const idx = localStorage.getItem('stopwatch_sessionIndex');
+        if (idx) sessionIndex = JSON.parse(idx);
+      } catch (e) {
+        console.error('Failed to load sessions:', e);
+        sessions = [];
+      }
+    }
+
+    function addSession(session) {
+      // session shape: { id, name, startISO, stopISO, durationMs, tags, laps }
+      sessions.unshift(session);  // newest first
+      saveSessions();
+    }
+
+    function deleteSession(id) {
+      sessions = sessions.filter(s => s.id !== id);
+      saveSessions();
+    }
+
+    function updateSession(id, updates) {
+      const s = sessions.find(s => s.id === id);
+      if (s) Object.assign(s, updates);
+      saveSessions();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STOPWATCH STATE
+    // ══════════════════════════════════════════════════════════════════════════
     let perfStart = 0;
     let elapsed   = 0;
     let ticker    = null;
 
-    // ── Session state ─────────────────────────────────────────────────────────
     let sessionIndex = 0;
     let startWall    = null;
-    let loggedCount  = 0;
 
-    // ── Lap state ─────────────────────────────────────────────────────────────
-    let laps        = [];   // { lapMs, totalMs, name, tag }
-    let lastLapMs   = 0;    // elapsed at previous lap
+    let laps        = [];
+    let lastLapMs   = 0;
     const LAP_TAGS  = ['', 'EXT (panel)', 'EXT (other)', 'INT', 'DATA ENTRY + EST'];
 
-    // ── UI state ──────────────────────────────────────────────────────────────
-    let running = false;   // is the timer actively ticking?
-    let stopped = false;   // has the timer been stopped (elapsed > 0)?
+    let running = false;
+    let stopped = false;
 
-    // ── DOM ───────────────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // DOM REFS
+    // ══════════════════════════════════════════════════════════════════════════
     const timeEl       = document.getElementById('time');
     const msEl         = document.getElementById('ms');
     const leftBtn       = document.getElementById('leftBtn');
@@ -1072,7 +1111,9 @@
 
     const INSPECTION_TAGS = ['Suggested Damages', 'Partial Automation'];
 
-    // ── Timer-state persistence (survives refresh) ─────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // TIMER PERSISTENCE (survives refresh while timer is running)
+    // ══════════════════════════════════════════════════════════════════════════
     function saveTimerState() {
       const state = {
         running,
@@ -1102,7 +1143,6 @@
       startWall    = s.startWall ? new Date(s.startWall) : null;
       lastLapMs    = s.lastLapMs || 0;
 
-      // Restore selected tags
       resetTags();
       (s.selectedTags || []).forEach(tag => {
         tagBtns.forEach(btn => {
@@ -1110,28 +1150,25 @@
         });
       });
 
-      // Restore laps
       laps = s.laps || [];
       if (laps.length) {
         lapSection.style.display = 'flex';
         laps.forEach((l, i) => {
           renderLapRow(i + 1, l.lapMs, l.totalMs);
-          // Restore tag selection on lap row
           const rows = lapList.querySelectorAll('.lap-row');
-          const row = rows[0]; // prepend means newest is first
+          const row = rows[0];
           if (l.tag) row.querySelector('.lap-tag-select').value = l.tag;
         });
       }
 
       if (s.running) {
-        // Timer was running — account for time while page was closed
         const extra = Date.now() - s.wallRef;
         elapsed   = s.elapsed + extra;
         perfStart = performance.now();
         ticker    = setInterval(tick, 10);
         running   = true;
         stopped   = false;
-        tick(); // immediately show current time
+        tick();
       } else if (s.stopped) {
         elapsed = s.elapsed;
         running = false;
@@ -1139,7 +1176,6 @@
         const { main, cs } = fmtElapsed(elapsed);
         timeEl.textContent = main;
         msEl.textContent   = cs;
-        showLogBtn(true);
       }
       updateButtons();
     }
@@ -1148,36 +1184,9 @@
       if (running || stopped) saveTimerState();
     });
 
-    // ── Log Persistence ───────────────────────────────────────────────────────
-    function saveLogs() {
-      const logs = [];
-      document.querySelectorAll('.log-entry').forEach(entry => {
-        const tagElements = entry.querySelectorAll('.log-tag');
-        const tags = Array.from(tagElements).map(t => t.textContent);
-        const lapsData = JSON.parse(entry.dataset.laps || '[]');
-        logs.push({
-          name: entry.querySelector('.entry-name').textContent,
-          duration: entry.querySelector('.entry-duration').innerHTML,
-          start: entry.querySelector('.time-value:first-of-type').textContent,
-          stop: entry.querySelector('.time-value:last-of-type').textContent,
-          tags: tags,
-          laps: lapsData
-        });
-      });
-      localStorage.setItem('stopwatch_logs', JSON.stringify(logs.reverse()));
-    }
-
-    function loadLogs() {
-      const saved = localStorage.getItem('stopwatch_logs');
-      if (saved) {
-        const logs = JSON.parse(saved);
-        logs.forEach(log => {
-          createLogElement(log.name, log.start, log.stop, log.duration, log.tags || [], log.laps || [], true);
-        });
-      }
-    }
-
-    // ── Utilities ─────────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // UTILITIES
+    // ══════════════════════════════════════════════════════════════════════════
     function fmtElapsed(ms) {
       const secs = Math.floor(ms / 1000);
       const min  = Math.floor(secs / 60);
@@ -1189,7 +1198,8 @@
       };
     }
 
-    function fmtWall(date) {
+    function fmtWall(dateOrISO) {
+      const date = (typeof dateOrISO === 'string') ? new Date(dateOrISO) : dateOrISO;
       return date.toLocaleString([], {
         month  : 'short',
         day    : 'numeric',
@@ -1201,14 +1211,7 @@
     }
 
     function escHtml(s) {
-      return s.replace(/&/g,'&amp;')
-              .replace(/</g,'&lt;')
-              .replace(/>/g,'&gt;')
-              .replace(/"/g,'&quot;');
-    }
-
-    function showLogBtn(show) {
-      // no-op: log button always visible now
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     function resetTags() {
@@ -1233,6 +1236,10 @@
     function fmtLap(ms) {
       const { main, cs } = fmtElapsed(ms);
       return `${main}.${cs}`;
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     }
 
     function renderLapRow(index, lapMs, totalMs) {
@@ -1265,19 +1272,16 @@
 
     function updateButtons() {
       if (running) {
-        // Right = STOP, Left = LAP
         rightBtn.textContent = 'STOP';
         rightBtn.classList.add('is-stop');
         leftBtn.textContent  = 'LAP';
         leftBtn.classList.add('is-lap');
       } else if (stopped) {
-        // Right = START (resume), Left = RESET
         rightBtn.textContent = 'START';
         rightBtn.classList.remove('is-stop');
         leftBtn.textContent  = 'RESET';
         leftBtn.classList.remove('is-lap');
       } else {
-        // Initial state
         rightBtn.textContent = 'START';
         rightBtn.classList.remove('is-stop');
         leftBtn.textContent  = 'RESET';
@@ -1286,270 +1290,34 @@
     }
 
     function refreshLogCount() {
-      logCountEl.textContent = `${loggedCount} session${loggedCount !== 1 ? 's' : ''}`;
+      logCountEl.textContent = `${sessions.length} session${sessions.length !== 1 ? 's' : ''}`;
     }
 
-    // ── Stopwatch controls ────────────────────────────────────────────────────
-    // Right button: START / STOP toggle
-    rightBtn.addEventListener('click', () => {
-      if (!running) {
-        // START
-        if (!startWall) startWall = new Date();
-        perfStart = performance.now();
-        ticker    = setInterval(tick, 10);
-        running   = true;
-        stopped   = false;
-        showLogBtn(false);
-        updateButtons();
-        saveTimerState();
-      } else {
-        // STOP
-        elapsed += performance.now() - perfStart;
-        clearInterval(ticker);
-        ticker  = null;
-        running = false;
-        stopped = true;
-        showLogBtn(true);
-        updateButtons();
-        saveTimerState();
-      }
-    });
-
-    // Left button: LAP (while running) / RESET (while stopped)
-    leftBtn.addEventListener('click', () => {
-      if (running) {
-        // LAP
-        const totalMs = elapsed + (performance.now() - perfStart);
-        const lapMs   = totalMs - lastLapMs;
-        lastLapMs     = totalMs;
-        laps.push({ lapMs, totalMs, tag: '' });
-        lapSection.style.display = 'flex';
-        renderLapRow(laps.length, lapMs, totalMs);
-        saveTimerState();
-      } else {
-        // RESET
-        clearInterval(ticker);
-        ticker    = null;
-        elapsed   = 0;
-        perfStart = 0;
-        startWall = null;
-        running   = false;
-        stopped   = false;
-
-        timeEl.textContent = '00:00';
-        msEl.textContent   = '00';
-
-        showLogBtn(false);
-        resetTags();
-        clearLaps();
-        updateButtons();
-        clearTimerState();
-      }
-    });
-
-    // ── Tag Selection ─────────────────────────────────────────────────────────
-    tagBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const wasActive = btn.classList.contains('active');
-        resetTags();
-        if (!wasActive) btn.classList.add('active');
-        if (running || stopped) saveTimerState();
-      });
-    });
-
-    // ── Log session button ────────────────────────────────────────────────────
-    logSessionBtn.addEventListener('click', () => {
-      sessionIndex++;
-      const stopWall = new Date();
-      const tags = getSelectedTags();
-      const savedElapsed  = elapsed;
-      const savedStartWall = startWall;
-
-      // Save laps snapshot, then reset
-      const savedLaps = laps.map(l => ({ lapMs: l.lapMs, totalMs: l.totalMs, tag: l.tag }));
-
-      // Reset timer FIRST
-      clearInterval(ticker);
-      ticker    = null;
-      elapsed   = 0;
-      perfStart = 0;
-      startWall = null;
-      timeEl.textContent = '00:00';
-      msEl.textContent   = '00';
-      running = false;
-      stopped = false;
-      resetTags();
-      clearLaps();
-      updateButtons();
-      clearTimerState();
-
-      // Then log using saved values
-      appendLogEntry(
-        `Session ${sessionIndex}`,
-        savedStartWall,
-        stopWall,
-        savedElapsed,
-        tags,
-        savedLaps
-      );
-
-      // Show toast
-      toast.style.display = 'flex';
-      setTimeout(() => { toast.style.display = 'none'; }, 1400);
-
-      // Briefly change button text to confirm
-      logSessionBtn.textContent = 'Session logged!';
-      logSessionBtn.classList.add('logged');
-      setTimeout(() => {
-        logSessionBtn.textContent = '＋  LOG SESSION';
-        logSessionBtn.classList.remove('logged');
-      }, 1400);
-    });
-
-    // ── Export CSV ──────────────────────────────────────────────────────────
-    function updateExportCount() {
-      const count = logEntriesEl.querySelectorAll('.log-entry.selected').length;
-      exportSelCount.textContent = `${count} selected`;
-      exportGoBtn.disabled = count === 0;
+    function updateLogVisibility() {
+      const hasEntries = sessions.length > 0;
+      noLogsMsg.style.display = hasEntries ? 'none' : 'block';
+      logEntriesEl.style.display = hasEntries ? 'block' : 'none';
     }
 
-    function enterSelectMode() {
-      logSection.classList.add('select-mode');
-      updateExportCount();
-    }
-
-    function exitSelectMode() {
-      logSection.classList.remove('select-mode');
-      logEntriesEl.querySelectorAll('.log-entry').forEach(e => {
-        e.classList.remove('selected');
-        e.querySelector('.entry-checkbox').checked = false;
-      });
-      exportDateInput.value = '';
-    }
-
-    function getEntryDate(entry) {
-      const startText = entry.querySelector('.time-value:first-of-type').textContent;
-      const parsed = new Date(startText);
-      if (!isNaN(parsed)) return parsed;
-      return null;
-    }
-
-    function selectByDate(dateStr) {
-      if (!dateStr) return;
-      const target = new Date(dateStr + 'T00:00:00');
-      const tYear = target.getFullYear(), tMonth = target.getMonth(), tDay = target.getDate();
-      logEntriesEl.querySelectorAll('.log-entry').forEach(entry => {
-        const d = getEntryDate(entry);
-        const match = d && d.getFullYear() === tYear && d.getMonth() === tMonth && d.getDate() === tDay;
-        entry.classList.toggle('selected', match);
-        entry.querySelector('.entry-checkbox').checked = match;
-      });
-      updateExportCount();
-    }
-
-    function buildCsvFromEntries(entries) {
-      const rows = [];
-      rows.push(['Session', 'Inspection Type', 'Duration', 'Start', 'Stop', 'Lap #', 'Lap Tag', 'Lap Time', 'Lap Total']);
-      entries.forEach(entry => {
-        const name  = entry.querySelector('.entry-name').textContent;
-        const tags  = Array.from(entry.querySelectorAll('.log-tag')).map(t => t.textContent).join('; ');
-        const dur   = entry.querySelector('.entry-duration').textContent;
-        const start = entry.querySelector('.time-value:first-of-type').textContent;
-        const stop  = entry.querySelector('.time-value:last-of-type').textContent;
-        const laps  = JSON.parse(entry.dataset.laps || '[]');
-        if (laps.length === 0) {
-          rows.push([name, tags, dur, start, stop, '', '', '', '']);
-        } else {
-          laps.forEach((l, i) => {
-            const { main: lm, cs: lc } = fmtElapsed(l.lapMs);
-            const { main: tm, cs: tc } = fmtElapsed(l.totalMs);
-            rows.push([
-              i === 0 ? name : '', i === 0 ? tags : '', i === 0 ? dur : '',
-              i === 0 ? start : '', i === 0 ? stop : '',
-              String(i + 1), l.tag || '', `${lm}.${lc}`, `${tm}.${tc}`
-            ]);
-          });
-        }
-      });
-      return rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    }
-
-    function downloadCsv(csv) {
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `stopwatch-sessions-${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    exportCsvBtn.addEventListener('click', () => {
-      const entries = logEntriesEl.querySelectorAll('.log-entry');
-      if (entries.length === 0) return;
-      // Default the date picker to today
-      exportDateInput.value = new Date().toISOString().slice(0, 10);
-      enterSelectMode();
-      selectByDate(exportDateInput.value);
-    });
-
-    exportDateInput.addEventListener('change', () => {
-      selectByDate(exportDateInput.value);
-    });
-
-    selectAllBtn.addEventListener('click', () => {
-      const entries = logEntriesEl.querySelectorAll('.log-entry');
-      const allSelected = Array.from(entries).every(e => e.classList.contains('selected'));
-      entries.forEach(e => {
-        e.classList.toggle('selected', !allSelected);
-        e.querySelector('.entry-checkbox').checked = !allSelected;
-      });
-      selectAllBtn.textContent = allSelected ? 'Select All' : 'Deselect All';
-      exportDateInput.value = '';
-      updateExportCount();
-    });
-
-    exportGoBtn.addEventListener('click', () => {
-      const selected = logEntriesEl.querySelectorAll('.log-entry.selected');
-      if (selected.length === 0) return;
-      const csv = buildCsvFromEntries(selected);
-      downloadCsv(csv);
-      exitSelectMode();
-    });
-
-    exportCancelBtn.addEventListener('click', () => {
-      exitSelectMode();
-    });
-
-    // ── Clear Logs ────────────────────────────────────────────────────────────
-    clearLogsBtn.addEventListener('click', () => {
-      if (confirm('Clear all logged sessions?')) {
-        logEntriesEl.querySelectorAll('.log-entry').forEach(e => e.remove());
-        loggedCount = 0;
-        updateLogVisibility();
-        refreshLogCount();
-        localStorage.removeItem('stopwatch_logs');
-      }
-    });
-
-    // ── Append completed session to log ───────────────────────────────────────
-    function appendLogEntry(name, startWall, stopWall, durationMs, tags = [], lapsData = []) {
-      const { main, cs } = fmtElapsed(durationMs);
-      const startStr = startWall ? fmtWall(startWall) : '—';
-      const stopStr  = fmtWall(stopWall);
-      const durationHtml = `${main}<span style="font-size:16px;color:#48487a">.${cs}</span>`;
-      
-      createLogElement(name, startStr, stopStr, durationHtml, tags, lapsData);
-      saveLogs();
-    }
-
-    function createLogElement(name, startStr, stopStr, durationHtml, tags = [], lapsData = [], isLoading = false) {
-      loggedCount++;
-      updateLogVisibility();
+    // ══════════════════════════════════════════════════════════════════════════
+    // RENDER LOG CARDS FROM DATA
+    // ══════════════════════════════════════════════════════════════════════════
+    function renderAllLogs() {
+      // Remove all existing log-entry cards (keep the export toolbar)
+      logEntriesEl.querySelectorAll('.log-entry').forEach(e => e.remove());
+      sessions.forEach(session => renderLogCard(session));
       refreshLogCount();
+      updateLogVisibility();
+    }
 
-      const tagHtml = tags.length > 0
-        ? tags.map(t => `<span class="log-tag">${escHtml(t)}</span>`).join('')
+    function renderLogCard(session) {
+      const { main, cs } = fmtElapsed(session.durationMs);
+      const startStr = session.startISO ? fmtWall(session.startISO) : '—';
+      const stopStr  = fmtWall(session.stopISO);
+      const durationHtml = `${main}<span style="font-size:16px;color:#48487a">.${cs}</span>`;
+
+      const tagHtml = (session.tags && session.tags.length > 0)
+        ? session.tags.map(t => `<span class="log-tag">${escHtml(t)}</span>`).join('')
         : buildTagSelectHtml();
 
       function buildTagSelectHtml() {
@@ -1560,10 +1328,9 @@
         </select>`;
       }
 
-      // Build laps detail HTML
       let lapsHtml = '';
-      if (lapsData.length > 0) {
-        const lapRows = lapsData.map((l, i) => `
+      if (session.laps && session.laps.length > 0) {
+        const lapRows = session.laps.map((l, i) => `
           <span class="el-num">${i + 1}</span>
           <span class="el-tag">${escHtml(l.tag || '—')}</span>
           <span class="el-split">${fmtLap(l.lapMs)}</span>
@@ -1571,7 +1338,7 @@
         `).join('');
 
         lapsHtml = `
-          <button class="entry-expand-btn"><span class="arrow">▶</span> ${lapsData.length} Lap${lapsData.length !== 1 ? 's' : ''}</button>
+          <button class="entry-expand-btn"><span class="arrow">▶</span> ${session.laps.length} Lap${session.laps.length !== 1 ? 's' : ''}</button>
           <div class="entry-laps">
             <div class="entry-laps-table">
               <span class="elh">#</span>
@@ -1586,13 +1353,13 @@
 
       const card = document.createElement('div');
       card.className = 'log-entry';
-      card.dataset.laps = JSON.stringify(lapsData);
+      card.dataset.sessionId = session.id;
       card.innerHTML = `
         <div class="entry-top">
           <div style="display:flex; align-items:center; gap:8px;">
             <input type="checkbox" class="entry-checkbox">
             <div style="display:flex; flex-direction:column; gap:4px;">
-              <span class="entry-name" contenteditable="true" spellcheck="false">${escHtml(name)}</span>
+              <span class="entry-name" contenteditable="true" spellcheck="false">${escHtml(session.name)}</span>
               <div class="entry-tags">${tagHtml}</div>
             </div>
           </div>
@@ -1625,14 +1392,28 @@
         });
       }
 
-      // Delete functionality
-      card.querySelector('.delete-btn').addEventListener('click', () => {
-        if (!confirm('Delete this session?')) return;
-        card.remove();
-        loggedCount--;
-        if (loggedCount === 0) updateLogVisibility();
-        refreshLogCount();
-        saveLogs();
+      // Delete — two-tap confirm (no confirm() dialog, works on all devices)
+      const deleteBtn = card.querySelector('.delete-btn');
+      let deleteArmed = false;
+      let deleteTimer = null;
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!deleteArmed) {
+          deleteArmed = true;
+          deleteBtn.textContent = 'Confirm?';
+          deleteBtn.style.background = 'rgba(255, 23, 68, 0.25)';
+          deleteTimer = setTimeout(() => {
+            deleteArmed = false;
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.style.background = '';
+          }, 3000);
+        } else {
+          clearTimeout(deleteTimer);
+          deleteSession(session.id);
+          card.remove();
+          refreshLogCount();
+          updateLogVisibility();
+        }
       });
 
       // Checkbox for export selection
@@ -1642,37 +1423,296 @@
         updateExportCount();
       });
 
-      // Name edit tracking
+      // Editable name — update data layer on blur
       const nameEl = card.querySelector('.entry-name');
       nameEl.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
       });
-      nameEl.addEventListener('blur', () => saveLogs());
+      nameEl.addEventListener('blur', () => {
+        updateSession(session.id, { name: nameEl.textContent.trim() });
+      });
 
-      // Inline tag selector (if no tag was pre-selected)
+      // Inline tag selector
       const tagSelect = card.querySelector('.entry-tag-select');
       if (tagSelect) {
         tagSelect.addEventListener('change', () => {
           const chosen = tagSelect.value;
           if (chosen) {
+            updateSession(session.id, { tags: [chosen] });
             const tagsDiv = card.querySelector('.entry-tags');
             tagsDiv.innerHTML = `<span class="log-tag">${escHtml(chosen)}</span>`;
-            saveLogs();
           }
         });
       }
 
-      // Newest session at the top (after the export toolbar)
+      // Insert after toolbar (newest first)
       exportToolbar.after(card);
     }
 
-    // Load existing logs on startup
-    loadLogs();
-    // Restore in-progress timer (must run after DOM + loadLogs)
-    restoreTimerState();
-    updateLogVisibility();
+    // ══════════════════════════════════════════════════════════════════════════
+    // STOPWATCH CONTROLS
+    // ══════════════════════════════════════════════════════════════════════════
+    rightBtn.addEventListener('click', () => {
+      if (!running) {
+        if (!startWall) startWall = new Date();
+        perfStart = performance.now();
+        ticker    = setInterval(tick, 10);
+        running   = true;
+        stopped   = false;
+        updateButtons();
+        saveTimerState();
+      } else {
+        elapsed += performance.now() - perfStart;
+        clearInterval(ticker);
+        ticker  = null;
+        running = false;
+        stopped = true;
+        updateButtons();
+        saveTimerState();
+      }
+    });
 
-    // ── Navigation ──────────────────────────────────────────────────────────
+    leftBtn.addEventListener('click', () => {
+      if (running) {
+        const totalMs = elapsed + (performance.now() - perfStart);
+        const lapMs   = totalMs - lastLapMs;
+        lastLapMs     = totalMs;
+        laps.push({ lapMs, totalMs, tag: '' });
+        lapSection.style.display = 'flex';
+        renderLapRow(laps.length, lapMs, totalMs);
+        saveTimerState();
+      } else {
+        clearInterval(ticker);
+        ticker    = null;
+        elapsed   = 0;
+        perfStart = 0;
+        startWall = null;
+        running   = false;
+        stopped   = false;
+        timeEl.textContent = '00:00';
+        msEl.textContent   = '00';
+        resetTags();
+        clearLaps();
+        updateButtons();
+        clearTimerState();
+      }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // TAG SELECTION
+    // ══════════════════════════════════════════════════════════════════════════
+    tagBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wasActive = btn.classList.contains('active');
+        resetTags();
+        if (!wasActive) btn.classList.add('active');
+        if (running || stopped) saveTimerState();
+      });
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // LOG SESSION
+    // ══════════════════════════════════════════════════════════════════════════
+    logSessionBtn.addEventListener('click', () => {
+      sessionIndex++;
+      const stopWall = new Date();
+      const tags = getSelectedTags();
+      const savedElapsed   = elapsed;
+      const savedStartWall = startWall;
+      const savedLaps = laps.map(l => ({ lapMs: l.lapMs, totalMs: l.totalMs, tag: l.tag }));
+
+      // Reset timer
+      clearInterval(ticker);
+      ticker    = null;
+      elapsed   = 0;
+      perfStart = 0;
+      startWall = null;
+      timeEl.textContent = '00:00';
+      msEl.textContent   = '00';
+      running = false;
+      stopped = false;
+      resetTags();
+      clearLaps();
+      updateButtons();
+      clearTimerState();
+
+      // Create session data object and persist
+      const session = {
+        id: generateId(),
+        name: `Session ${sessionIndex}`,
+        startISO: savedStartWall ? savedStartWall.toISOString() : null,
+        stopISO: stopWall.toISOString(),
+        durationMs: savedElapsed,
+        tags: tags,
+        laps: savedLaps
+      };
+      addSession(session);
+
+      // Render the new card
+      renderLogCard(session);
+      refreshLogCount();
+      updateLogVisibility();
+
+      // Toast
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 1400);
+
+      logSessionBtn.textContent = 'Session logged!';
+      logSessionBtn.classList.add('logged');
+      setTimeout(() => {
+        logSessionBtn.textContent = '＋  LOG SESSION';
+        logSessionBtn.classList.remove('logged');
+      }, 1400);
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // EXPORT CSV — now reads from data layer, not DOM
+    // ══════════════════════════════════════════════════════════════════════════
+    function updateExportCount() {
+      const count = logEntriesEl.querySelectorAll('.log-entry.selected').length;
+      exportSelCount.textContent = `${count} selected`;
+      exportGoBtn.disabled = count === 0;
+    }
+
+    function enterSelectMode() {
+      logSection.classList.add('select-mode');
+      updateExportCount();
+    }
+
+    function exitSelectMode() {
+      logSection.classList.remove('select-mode');
+      logEntriesEl.querySelectorAll('.log-entry').forEach(e => {
+        e.classList.remove('selected');
+        e.querySelector('.entry-checkbox').checked = false;
+      });
+      exportDateInput.value = '';
+    }
+
+    function selectByDate(dateStr) {
+      if (!dateStr) return;
+      const target = new Date(dateStr + 'T00:00:00');
+      const tYear = target.getFullYear(), tMonth = target.getMonth(), tDay = target.getDate();
+      logEntriesEl.querySelectorAll('.log-entry').forEach(card => {
+        const sid = card.dataset.sessionId;
+        const session = sessions.find(s => s.id === sid);
+        if (!session) return;
+        const d = session.startISO ? new Date(session.startISO) : null;
+        const match = d && d.getFullYear() === tYear && d.getMonth() === tMonth && d.getDate() === tDay;
+        card.classList.toggle('selected', match);
+        card.querySelector('.entry-checkbox').checked = match;
+      });
+      updateExportCount();
+    }
+
+    function buildCsvFromSelectedCards(selectedCards) {
+      const rows = [];
+      rows.push(['Session', 'Inspection Type', 'Duration', 'Start', 'Stop', 'Lap #', 'Lap Tag', 'Lap Time', 'Lap Total']);
+      selectedCards.forEach(card => {
+        const sid = card.dataset.sessionId;
+        const session = sessions.find(s => s.id === sid);
+        if (!session) return;
+
+        const name  = session.name;
+        const tags  = (session.tags || []).join('; ');
+        const { main, cs } = fmtElapsed(session.durationMs);
+        const dur   = `${main}.${cs}`;
+        const start = session.startISO ? fmtWall(session.startISO) : '—';
+        const stop  = fmtWall(session.stopISO);
+        const sLaps = session.laps || [];
+
+        if (sLaps.length === 0) {
+          rows.push([name, tags, dur, start, stop, '', '', '', '']);
+        } else {
+          sLaps.forEach((l, i) => {
+            const { main: lm, cs: lc } = fmtElapsed(l.lapMs);
+            const { main: tm, cs: tc } = fmtElapsed(l.totalMs);
+            rows.push([
+              i === 0 ? name : '', i === 0 ? tags : '', i === 0 ? dur : '',
+              i === 0 ? start : '', i === 0 ? stop : '',
+              String(i + 1), l.tag || '', `${lm}.${lc}`, `${tm}.${tc}`
+            ]);
+          });
+        }
+      });
+      return rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    }
+
+    function downloadCsv(csv) {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `stopwatch-sessions-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    exportCsvBtn.addEventListener('click', () => {
+      if (sessions.length === 0) return;
+      exportDateInput.value = new Date().toISOString().slice(0, 10);
+      enterSelectMode();
+      selectByDate(exportDateInput.value);
+    });
+
+    exportDateInput.addEventListener('change', () => {
+      selectByDate(exportDateInput.value);
+    });
+
+    selectAllBtn.addEventListener('click', () => {
+      const entries = logEntriesEl.querySelectorAll('.log-entry');
+      const allSelected = Array.from(entries).every(e => e.classList.contains('selected'));
+      entries.forEach(e => {
+        e.classList.toggle('selected', !allSelected);
+        e.querySelector('.entry-checkbox').checked = !allSelected;
+      });
+      selectAllBtn.textContent = allSelected ? 'Select All' : 'Deselect All';
+      exportDateInput.value = '';
+      updateExportCount();
+    });
+
+    exportGoBtn.addEventListener('click', () => {
+      const selected = logEntriesEl.querySelectorAll('.log-entry.selected');
+      if (selected.length === 0) return;
+      const csv = buildCsvFromSelectedCards(selected);
+      downloadCsv(csv);
+      exitSelectMode();
+    });
+
+    exportCancelBtn.addEventListener('click', () => {
+      exitSelectMode();
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // CLEAR LOGS
+    // ══════════════════════════════════════════════════════════════════════════
+    let clearArmed = false;
+    let clearTimer = null;
+    clearLogsBtn.addEventListener('click', () => {
+      if (!clearArmed) {
+        clearArmed = true;
+        clearLogsBtn.textContent = 'Confirm Clear?';
+        clearLogsBtn.style.color = '#ff1744';
+        clearTimer = setTimeout(() => {
+          clearArmed = false;
+          clearLogsBtn.textContent = 'Clear All';
+          clearLogsBtn.style.color = '';
+        }, 3000);
+      } else {
+        clearTimeout(clearTimer);
+        sessions = [];
+        saveSessions();
+        logEntriesEl.querySelectorAll('.log-entry').forEach(e => e.remove());
+        refreshLogCount();
+        updateLogVisibility();
+        clearArmed = false;
+        clearLogsBtn.textContent = 'Clear All';
+        clearLogsBtn.style.color = '';
+      }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ══════════════════════════════════════════════════════════════════════════
     const navItems = document.querySelectorAll('.nav-item');
     const pages    = document.querySelectorAll('.page');
 
@@ -1688,26 +1728,14 @@
       item.addEventListener('click', () => switchPage(item.dataset.page));
     });
 
-    // ── Log visibility helper ─────────────────────────────────────────────
-    function updateLogVisibility() {
-      const hasEntries = loggedCount > 0;
-      noLogsMsg.style.display = hasEntries ? 'none' : 'block';
-      logEntriesEl.style.display = hasEntries ? 'block' : 'none';
-    }
-
-    // ── Dashboard ──────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // DASHBOARD — reads from data layer
+    // ══════════════════════════════════════════════════════════════════════════
     const dashTotal = document.getElementById('dashTotal');
     const dashAvg   = document.getElementById('dashAvg');
     const dashToday = document.getElementById('dashToday');
     const dashMin   = document.getElementById('dashMin');
     const dashMax   = document.getElementById('dashMax');
-
-    function parseDurationMs(durText) {
-      // durText like "03:25.12" (from textContent which strips inner spans)
-      const m = durText.match(/(\d+):(\d+)\.(\d+)/);
-      if (!m) return 0;
-      return (parseInt(m[1]) * 60 + parseInt(m[2])) * 1000 + parseInt(m[3]) * 10;
-    }
 
     function fmtDash(ms) {
       const { main, cs } = fmtElapsed(ms);
@@ -1715,8 +1743,7 @@
     }
 
     function updateDashboard() {
-      const entries = document.querySelectorAll('.log-entry');
-      const count = entries.length;
+      const count = sessions.length;
       dashTotal.textContent = count;
 
       if (count === 0) {
@@ -1727,18 +1754,17 @@
         return;
       }
 
-      const durations = [];
+      const durations = sessions.map(s => s.durationMs);
       let todayCount = 0;
       const now = new Date();
       const todayStr = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
 
-      entries.forEach(entry => {
-        const durText = entry.querySelector('.entry-duration').textContent;
-        durations.push(parseDurationMs(durText));
-        const startText = entry.querySelector('.time-value:first-of-type').textContent;
-        const d = new Date(startText);
-        if (!isNaN(d) && `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` === todayStr) {
-          todayCount++;
+      sessions.forEach(s => {
+        if (s.startISO) {
+          const d = new Date(s.startISO);
+          if (`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` === todayStr) {
+            todayCount++;
+          }
         }
       });
 
@@ -1748,6 +1774,13 @@
       dashMin.textContent = fmtDash(Math.min(...durations));
       dashMax.textContent = fmtDash(Math.max(...durations));
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // BOOT — load data, render, restore timer
+    // ══════════════════════════════════════════════════════════════════════════
+    loadSessions();
+    renderAllLogs();
+    restoreTimerState();
   </script>
 </body>
 </html>
